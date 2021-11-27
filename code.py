@@ -1,0 +1,391 @@
+## 2021.Mar-07 11:30 am
+##    originated
+## 2021.Aug-13 3:01 pm
+##    updated with metric conversion
+##    improved error handling for web requests
+## 2021,Nov.05
+##    weather uses NWS api results
+##    bug fixes
+
+
+## IMPORT LIBRARIES
+import json, board, time, gc
+import busio
+import displayio
+from rtc import RTC
+from adafruit_matrixportal.network import Network
+from adafruit_matrixportal.matrix import Matrix
+from adafruit_bitmap_font import bitmap_font
+import adafruit_display_text.label
+
+import adafruit_requests
+##
+## GRAB SECRETS AND ASSIGN VARIABLES
+##
+try:
+    from secrets import secrets
+except ImportError:
+    print('WiFi secrets are kept in secrets.py, please add them there!')
+
+try:
+    LATITUDE = secrets['latitude']
+    LONGITUDE = secrets['longitude']
+    TIMEZONE = secrets['timezone']
+    print('Using CACHED geolocation: ', LATITUDE, LONGITUDE)
+except:
+    LATITUDE = 44.300
+    LONGITUDE = -121.608
+    TIMEZONE = 'America/Los_Angeles'
+    print('Using DEFAULT geolocation: ', LATITUDE, LONGITUDE)
+
+### Initialize Display
+
+BITPLANES = 4
+MATRIX = Matrix(bit_depth=BITPLANES)
+DISPLAY = MATRIX.display
+
+FONT = bitmap_font.load_font('/fonts/helvR10.bdf')
+LARGE_FONT = bitmap_font.load_font('/fonts/helvB12.bdf')
+
+DISPLAY.rotation = 0
+
+NETWORK = Network(status_neopixel=board.NEOPIXEL, debug=False)
+NETWORK.connect()
+
+def set_rtc():
+    url_time = "http://worldclockapi.com/api/json/pst/now"
+    #print(url_time)
+    try:
+        fetched_data = json.loads(NETWORK.fetch_data(url_time))
+    except:
+        fetched_data = {"$id":"1","currentDateTime":"2021-08-31T12:43-07:00","utcOffset":"-07:00:00","isDayLightSavingsTime":true,"dayOfTheWeek":"Tuesday","timeZoneName":"Pacific Standard Time","currentFileTime":132748873890339258,"ordinalDate":"2021-243","serviceResponse":null}
+    time_date = fetched_data['currentDateTime']
+    y_m_d_h_m_s = time_date.split('T')[0].split('-')+ time_date.split('T')[1].split('-')[0].split(':')
+    y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['0', 0, '-1','-1']]
+    y_m_d_h_m_s = tuple(y_m_d_h_m_s)
+    #print("RTC = ", y_m_d_h_m_s)
+    ## set RTC
+    RTC().datetime = time.struct_time(y_m_d_h_m_s)
+    return
+
+def sensors():
+    url="https://bachelorapi.azurewebsites.net/sensors2"
+    #print(url)
+    try:
+        fetched_data = json.loads(NETWORK.fetch_data(url))
+        text = fetched_data
+    except:
+        text = {"pine_gust":00,"pine_temp":00,"pine_wind":00,"snow_depth":00}
+    #print("/sensors ", text)
+    return text
+
+def weather():
+    url="https://bachelorapi.azurewebsites.net/weather2"
+    #print(url)
+    try:
+        fetched_data = json.loads(NETWORK.fetch_data(url))
+        text = fetched_data
+    except:
+        print('Decoding JSON has failed')
+        text = {"shortforecast_even_later":"Light Snow","shortforecast_later":"Light Snow","shortforecast_now":"Snow","when_even_later":"Saturday","when_later":"Tonight","when_now":"Today"}
+    #print("/weather ", text)
+    return text
+
+def report():
+    url="https://bachelorapi.azurewebsites.net/report2"
+    print("report: ",time.time())
+    #print(url)
+    #try:
+    try:
+        fetched_data = json.loads(NETWORK.fetch_data(url))
+        text = fetched_data
+    except:
+        text = {"snow_24h":5.2,"snow_48h":5.2,"snow_overnight":5.2}
+    #print("/report ",text)
+    return text
+
+def sun():
+    ## pick appropriate url for location
+    url="https://bachelorapi.azurewebsites.net/sunrise/seattle"
+    #url="https://bachelorapi.azurewebsites.net/sunrise/sisters"
+    #url="https://bachelorapi.azurewebsites.net/sunrise/bachelor"
+    #url="https://bachelorapi.azurewebsites.net/sunrise/louis"
+    #url="https://bachelorapi.azurewebsites.net/sunrise/hillsboro"
+    #url="https://bachelorapi.azurewebsites.net/sunrise/portland"
+    try:
+        fetched_data = json.loads(NETWORK.fetch_data(url))
+        text = fetched_data["sun"]
+    except:
+        text = {"name":"error","sun":"00:01  -  23:59"}
+    return text
+
+while True:
+    ## big loop checks weather, sun, report every ~2.8 hours
+    big_time = time.time()
+
+    sun_text = sun()
+    set_rtc()
+
+    mem_last = 0
+
+    l1_x = "0"
+    l2_x = "0"
+    l3_x = "0"
+    len_l1 = 0
+    len_l2 = 0
+    len_l3 = 0
+    i = 1
+    l1_x = -1000
+
+    k = 1
+    k_eff=1
+
+    ## loop 3 initialize
+    j = 1
+    l3_x = -1000
+    toggle_l1=3
+    toggle_l3=3
+
+    # make web calls pseudorandom
+    rando1 = (int(1000*(time.time())%5879)-1000)/1E4 + 3.4
+
+    #print("time rando1 = ", rando1, " hours")
+    gc.collect()
+    mem_last_1 = gc.mem_free()
+
+    while time.time()-big_time < rando1*60*60:
+
+        report_json = report()
+        sensors_json = sensors()
+
+        ## Metric
+        text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32), 1)) + "\u00B0C  "
+        text_l1_1 = "wind " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
+        text_l1_2 = "snow " + str(round(0.0254*sensors_json["snow_depth"]+.03, 1)) + " m base "
+        text_l1_3 = str(int(round(2.54*report_json['snow_overnight']))) + " cm fresh "
+        text_l1_4 = str(int(round(2.54*report_json['snow_24h']))) + " cm / 24 h "
+        text_l1_5 = "Conditions @ PMX"
+
+        ## English
+        #text_l1_0 = str(sensors_json["pine_temp"]) + "\u00B0F "
+        #text_l1_1 = str(round(sensors_json["pine_wind"], 0)) + " to " +str(round(sensors_json["pine_gust"], 0)) + " mph "
+        #text_l1_2 = str(sensors_json["snow_depth"]) + " \""
+        #text_l1_3 = str(report_json['snow_overnight']) + " \" fresh "
+        #text_l1_4 = str(report_json['snow_24h']) + " \" / 24hours "
+
+        weather_text = weather()
+        text_l3_0 = weather_text['when_now']+":"
+        text_l3_1 = weather_text['shortforecast_now']
+        text_l3_2 = weather_text['when_later']+":"
+        text_l3_3 = weather_text['shortforecast_later'] + "  ...and "
+        text_l3_5 = weather_text['when_even_later']
+        text_l3_4 = weather_text['shortforecast_even_later']
+
+
+        flip_l2 = True
+
+        i = 1
+
+        len_l1 = len(text_l1_0)
+
+        k = 1
+        k_eff=1
+        start_time = time.time()
+        last_scroll = 0
+
+        len_l2 = 5
+
+        #l_3
+        j = 0
+        len_l3 = len(text_l3_0)
+
+        rando2 = (int(1000*(time.time())%4919)-200)/1E4 + .5  #in hours
+        #print(rando2, " hours")
+
+        mem_last_2 = gc.mem_free()
+
+        while time.time()-start_time < rando2*60*60:
+            if l1_x < -4.5*(len_l1-2):
+                i = 1
+                toggle_l1 = (toggle_l1 + 1)%6
+
+            if toggle_l1 == 0:
+                text_l1 = text_l1_0
+                color_x = 0x979797
+                if sensors_json["pine_temp"]<16:
+                    color_x = 0x8DD2A3
+                if sensors_json["pine_temp"]>31:
+                    color_x = 0xAD92A3
+
+            if toggle_l1 == 1:
+                text_l1 = text_l1_1
+                color_x = 0x979797
+                if sensors_json["pine_gust"] > 35:
+                    color_x = 0x9797D7
+                if sensors_json["pine_gust"] > 50:
+                    color_x = 0x9797E7
+
+            if toggle_l1 == 2:
+                text_l1 = text_l1_2
+                color_x = 0x979797
+            #    if sensors_json["snow_depth"]<5:
+            #        color_x = 0x878787
+                if sensors_json["snow_depth"]>72:
+                    color_x = 0xD7D7A7
+
+            if toggle_l1 == 3:
+                text_l1 = text_l1_3
+                color_x = 0x979797
+                if report_json['snow_overnight']>4:
+                    color_x = 0x8787A7
+                if report_json['snow_overnight']>8:
+                    color_x = 0xA7D7F7
+
+            if toggle_l1 == 4:
+                text_l1 = text_l1_4
+                color_x = 0x878787
+                if report_json['snow_24h']>8:
+                    color_x = 0x8787A7
+                if report_json['snow_24h']>11:
+                    color_x = 0xA7D7F7
+
+            if toggle_l1 == 5:
+                text_l1 = text_l1_5
+                color_x = 0x8787A7
+
+            len_l1 = len(text_l1)
+
+            l1_x = (-i*2.5)%(64+5*len_l1)-5*len_l1
+
+            line1 = adafruit_display_text.label.Label(
+                FONT,
+                color=color_x,
+                text=text_l1
+                )
+            line1.x = int(l1_x)
+            line1.y = 26
+
+            ##TEXT 2
+            time_struct = time.localtime()
+            time_now = '{0:0>2}'.format(time_struct.tm_hour)+ ':' + '{0:0>2}'.format(time_struct.tm_min)
+
+            time_scroll_since = time.time() - last_scroll
+            l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
+
+            if l2_x < -4.5*len_l2:
+                k = 1
+                k_eff = 1
+                flip_l2 = not(flip_l2)
+
+            dl2_y = 0
+            if (i+j+k)%91 == 0:
+                dl2_y = (i+j+k)%3-1
+
+            if flip_l2:
+                text_l2 = time_now
+                len_l2 = len(text_l2)
+                l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
+                if l2_x > 18:
+                    k_eff = k
+                else:
+                    if k-k_eff < 600:
+                        l2_x = 16
+                    else:
+                        k_eff = k - 600
+                        l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
+
+                color_2 = 0x017220
+
+                line2 = adafruit_display_text.label.Label(
+                        LARGE_FONT,
+                        color=color_2,
+                        text=text_l2)
+                line2.x = int(l2_x)
+                line2.y = 16
+
+
+            else:
+                k_eff=k
+                text_l2 = sun_text
+                len_l2 = len(sun_text)
+                l2_x = (-k_eff*4.3)%(64+5*len_l2)-5*len_l2
+                line2 = adafruit_display_text.label.Label(
+                    FONT,
+                    color=0xD79200,
+                    text=text_l2)
+                line2.x = int(l2_x)
+                line2.y = 16
+
+            ## TEXT 3
+
+            if l3_x < -4*(len_l3-3):
+                j = 1
+                toggle_l3 = (toggle_l3 + 1)%6
+
+            if toggle_l3 == 0:
+                text_l3 = text_l3_0 + "  "
+
+            if toggle_l3 == 1:
+                #print(J, text_l3_1, l3_x, -4.7*len_l3)
+                text_l3 = text_l3_1+ "  "
+
+            if toggle_l3 == 2:
+                text_l3 = text_l3_2+ "  "
+
+            if toggle_l3 == 3:
+                text_l3 = text_l3_3+ "  "
+
+            if toggle_l3 == 4:
+                text_l3 = text_l3_4+ "  "
+
+            if toggle_l3 == 5:
+                text_l3 = text_l3_5+ "  "
+
+            len_l3 = len(text_l3)
+
+            l3_x = (-j*2.8)%(64+5*len_l3)-5*len_l3
+
+            gc.collect()
+            #print(mem_last_2, "  ", gc.mem_free(),text_l1, "  ", text_l2, "  ",text_l3 )
+
+            line3 = adafruit_display_text.label.Label(
+                FONT,
+                color = 0x3B66BF,
+                text=text_l3)
+            line3.x= int(l3_x)
+            line3.y = 5
+
+            #line4 = adafruit_display_text.label.Label(
+            #    FONT,
+            #    color = 0x060614,
+            #    text="Mount")
+            #line4.x= 3
+            #line4.y = 10
+
+            #line5 = adafruit_display_text.label.Label(
+            #    FONT,
+            #    color = 0x060614,
+            #    text="Bachelor")
+            #line5.x= 25
+            #line5.y = 20
+
+            # Put each line into a Group, then show
+
+            g = 0
+
+            g = displayio.Group(max_size = 3)
+            g.append(line1)
+            g.append(line2)
+            g.append(line3)
+            #g.append(line4)
+            #g.append(line5)
+
+            DISPLAY.show(g)
+            # clean up memory and pause
+            gc.collect()
+            time.sleep(.03)
+            # scroll counters
+            k += 1
+            j += 1
+            i += 1
+        gc.collect()
