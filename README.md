@@ -15,8 +15,8 @@ Your board will also need the file:
 A file containing wifi passwords for your local network and your local latitude and longitude
 It is of the format   
 `secrets = {
-    'ssid'      : 'Your Local Wifi SSID',
-    'password'  : 'Your Password',
+    'ssid'      : 'Your_Local_Wifi_SSID',
+    'password'  : 'Your_Password',
     'latitude'  : 43.97942,
     'longitude' : -121.68873,
     'timezone'  : 'America/Los_Angeles'
