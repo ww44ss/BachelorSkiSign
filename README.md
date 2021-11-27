@@ -1,8 +1,8 @@
 # BachelorSkiSign
 Python Repository for Bachelor Ski Sign. This application reads data from https://bachelorapi.azurewebsites.net/ 
 It is written in Ciruit Python for the Adafruit M4 controller and display board. 
-- (Adafruit Matrix Portal M4)[https://www.adafruit.com/product/4745]   
-- (64x32 RGB LED Matrix - 3mm pitch)[https://www.adafruit.com/product/2279]   
+- Adafruit Matrix Portal M4 [https://www.adafruit.com/product/4745]   
+- [64x32 RGB LED Matrix - 3mm pitch](https://www.adafruit.com/product/2279)
 
 
 
