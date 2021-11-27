@@ -6,11 +6,11 @@ It is written in Ciruit Python for the Adafruit M4 controller and display board.
 
 
 
-# Code.py
+`Code.py`
 Python code for the sign
 
 Your board will also need the file:
-# Secrets.py
+`Secrets.py`
 A file containing wifi passwords for your local network and your local latitude and longitude
 It is of the format
 
