@@ -106,9 +106,9 @@ def report():
 
 def sun():
     ## pick appropriate url for location
-    url="https://bachelorapi.azurewebsites.net/sunrise/seattle"
+    #url="https://bachelorapi.azurewebsites.net/sunrise/seattle"
     #url="https://bachelorapi.azurewebsites.net/sunrise/sisters"
-    #url="https://bachelorapi.azurewebsites.net/sunrise/bachelor"
+    url="https://bachelorapi.azurewebsites.net/sunrise/bachelor"
     #url="https://bachelorapi.azurewebsites.net/sunrise/louis"
     #url="https://bachelorapi.azurewebsites.net/sunrise/hillsboro"
     #url="https://bachelorapi.azurewebsites.net/sunrise/portland"
@@ -147,7 +147,7 @@ while True:
     toggle_l3=3
 
     # make web calls pseudorandom
-    rando1 = (int(1000*(time.time())%5879)-1000)/1E4 + 3.4
+    rando1 = 2*(int(1000*(time.time())%5879)-1000)/1E4 + 2.4
 
     #print("time rando1 = ", rando1, " hours")
     gc.collect()
@@ -163,8 +163,8 @@ while True:
         text_l1_1 = "wind " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
         text_l1_2 = "snow " + str(round(0.0254*sensors_json["snow_depth"]+.03, 1)) + " m base "
         text_l1_3 = str(int(round(2.54*report_json['snow_overnight']))) + " cm fresh "
-        text_l1_4 = str(int(round(2.54*report_json['snow_24h']))) + " cm / 24 h "
-        text_l1_5 = "Conditions @ PMX"
+        text_l1_4 = str(int(round(2.54*report_json['snow_24h']))) + " cm in 24 h "
+        text_l1_5 = "Conditions"
 
         ## English
         #text_l1_0 = str(sensors_json["pine_temp"]) + "\u00B0F "
@@ -199,7 +199,7 @@ while True:
         j = 0
         len_l3 = len(text_l3_0)
 
-        rando2 = (int(1000*(time.time())%4919)-200)/1E4 + .5  #in hours
+        rando2 = 2*(int(1000*(time.time())%4919)-200)/1E4 + .5  #in hours
         #print(rando2, " hours")
 
         mem_last_2 = gc.mem_free()
@@ -220,16 +220,14 @@ while True:
             if toggle_l1 == 1:
                 text_l1 = text_l1_1
                 color_x = 0x979797
-                if sensors_json["pine_gust"] > 35:
+                if sensors_json["pine_gust"] > 40:
                     color_x = 0x9797D7
-                if sensors_json["pine_gust"] > 50:
+                if sensors_json["pine_gust"] > 60:
                     color_x = 0x9797E7
 
             if toggle_l1 == 2:
                 text_l1 = text_l1_2
                 color_x = 0x979797
-            #    if sensors_json["snow_depth"]<5:
-            #        color_x = 0x878787
                 if sensors_json["snow_depth"]>72:
                     color_x = 0xD7D7A7
 
