@@ -164,6 +164,10 @@ while True:
         text_l1_2 = "snow " + str(round(0.0254*sensors_json["snow_depth"]+.03, 1)) + " m base "
         text_l1_3 = str(int(round(2.54*report_json['snow_overnight']))) + " cm fresh "
         text_l1_4 = str(int(round(2.54*report_json['snow_24h']))) + " cm in 24 h "
+        if report_json['snow_48h'] > 2.1 * report_json['snow_24h']:
+            text_l1_3 = str(int(round(2.54*report_json['snow_48h']))) + " cm in 48 hours "
+        if report_json['snow_overnight'] > 3.9:
+            text_l1_3 = str(int(round(2.54*report_json['snow_overnight']))) + " cm overnight "
         text_l1_5 = "Conditions"
 
         ## English
