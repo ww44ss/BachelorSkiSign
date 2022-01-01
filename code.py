@@ -178,12 +178,12 @@ while True:
         #text_l1_4 = str(report_json['snow_24h']) + " \" / 24hours "
 
         weather_text = weather()
-        text_l3_0 = weather_text['when_now']+":"
+        text_l3_0 = weather_text['when_now']+" :"
         text_l3_1 = weather_text['shortforecast_now']
-        text_l3_2 = weather_text['when_later']+":"
-        text_l3_3 = weather_text['shortforecast_later'] + "  ...and "
-        text_l3_5 = weather_text['when_even_later']
-        text_l3_4 = weather_text['shortforecast_even_later']
+        text_l3_2 = weather_text['when_later']+" :"
+        text_l3_3 = weather_text['shortforecast_later']
+        text_l3_4 = weather_text['when_even_later']+" :"
+        text_l3_5 = weather_text['shortforecast_even_later']
 
 
         flip_l2 = True
