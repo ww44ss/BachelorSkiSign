@@ -401,13 +401,12 @@ while True:
             g.append(line1)
             g.append(line2)
             g.append(line3)
-            #g.append(line4)
-            #g.append(line5)
+       
 
             DISPLAY.show(g)
             # clean up memory and pause
             gc.collect()
-            time.sleep(.03)
+            time.sleep(.05)
             # scroll counters
             k += 1
             j += 1
