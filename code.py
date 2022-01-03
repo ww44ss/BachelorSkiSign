@@ -1,11 +1,8 @@
 ## 2021.Mar-07 11:30 am
 ##    originated
-## 2021.Aug-13 3:01 pm
-##    updated with metric conversion
-##    improved error handling for web requests
-## 2021,Nov.05
-##    weather uses NWS api results
-##    bug fixes
+## 2021.Aug-13: updated with metric conversion, improved error handling for web requests
+## 2021,Nov.05: weather uses NWS api results
+## 2022 Jan 02: error handling. 
 
 
 ## IMPORT LIBRARIES
@@ -53,12 +50,20 @@ NETWORK = Network(status_neopixel=board.NEOPIXEL, debug=False)
 NETWORK.connect()
 
 def set_rtc():
-    url_time = "http://worldclockapi.com/api/json/pst/now"
+    url = "http://worldclockapi.com/api/json/pst/now"
     #print(url_time)
-    try:
-        fetched_data = json.loads(NETWORK.fetch_data(url_time))
-    except:
-        fetched_data = {"$id":"1","currentDateTime":"2021-08-31T12:43-07:00","utcOffset":"-07:00:00","isDayLightSavingsTime":true,"dayOfTheWeek":"Tuesday","timeZoneName":"Pacific Standard Time","currentFileTime":132748873890339258,"ordinalDate":"2021-243","serviceResponse":null}
+    retry = True
+    cycle = 1
+   
+    while (retry == True or cycle >5):
+        try:
+            fetched_data = json.loads(NETWORK.fetch_data(url))
+            retry = False
+        except:
+            fetched_data = {"$id":"1","currentDateTime":"2021-08-31T12:43-07:00","utcOffset":"-07:00:00","isDayLightSavingsTime":true,"dayOfTheWeek":"Tuesday","timeZoneName":"Pacific Standard Time","currentFileTime":132748873890339258,"ordinalDate":"2021-243","serviceResponse":null}
+            cycle += 1
+            time.sleep(1.0*cycle)
+            
     time_date = fetched_data['currentDateTime']
     y_m_d_h_m_s = time_date.split('T')[0].split('-')+ time_date.split('T')[1].split('-')[0].split(':')
     y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['0', 0, '-1','-1']]
@@ -66,30 +71,48 @@ def set_rtc():
     #print("RTC = ", y_m_d_h_m_s)
     ## set RTC
     RTC().datetime = time.struct_time(y_m_d_h_m_s)
+    print("url", url, "  cycle = ",cycle)
     return
 
 def sensors():
     url="https://bachelorapi.azurewebsites.net/sensors2"
     #print(url)
-    try:
-        fetched_data = json.loads(NETWORK.fetch_data(url))
-        text = fetched_data
-    except:
-        text = {"pine_gust":00,"pine_temp":00,"pine_wind":00,"snow_depth":00}
-    #print("/sensors ", text)
+    retry = True
+    cycle = 1
+   
+    while (retry == True or cycle >5):
+        try:
+            fetched_data = json.loads(NETWORK.fetch_data(url))
+            text = fetched_data
+            retry = False
+        except:
+            text = {"cycle": cycle,pine_gust":00,"pine_temp":00,"pine_wind":00,"snow_depth":00}
+            cycle += 1
+            time.sleep(.75)
+
+
+    print("url", url, "  API_cycle = ",text[cycle], " display_cycle = ", cycle)
     return text
 
 def weather():
     url="https://bachelorapi.azurewebsites.net/weather2"
     #print(url)
-    try:
-        fetched_data = json.loads(NETWORK.fetch_data(url))
-        text = fetched_data
-    except:
-        print('Decoding JSON has failed')
-        text = {"shortforecast_even_later":"Light Snow","shortforecast_later":"Light Snow","shortforecast_now":"Snow","when_even_later":"Saturday","when_later":"Tonight","when_now":"Today"}
+    retry = True
+    cycle = 1
+   
+    while (retry == True or cycle >5):
+        try:
+            fetched_data = json.loads(NETWORK.fetch_data(url))
+            text = fetched_data
+            retry = False
+        except:
+            print('Decoding JSON has failed')
+            cycle += 1
+            time.sleep(.75)
+            text = {"cycle": cycle,"shortforecast_even_later":"Light Snow","shortforecast_later":"Light Snow","shortforecast_now":"Snow","when_even_later":"Saturday","when_later":"Tonight","when_now":"Today"}
+    
     #print("/weather ", text)
-    print("url", url, "  cycle = ",cycle)
+    print("url", url, "  API_cycle = ",text[cycle], "web_cycle = ", cycle)
     return text
 
 def report():
@@ -101,15 +124,15 @@ def report():
         fetched_data = json.loads(NETWORK.fetch_data(url))
         text = fetched_data
     except:
-        text = {"snow_24h":5.2,"snow_48h":5.2,"snow_overnight":5.2}
-    print("url", url, "  cycle = ",cycle)
+        text = {"cycle": cycle,"snow_24h":5.2,"snow_48h":5.2,"snow_overnight":5.2}
+    print("url", url, "  cycle = ",text[cycle])
     return text
 
 def sun():
     ## pick appropriate url for location
-    url="https://bachelorapi.azurewebsites.net/sunrise/seattle"
+    url="https://bachelorapi.azurewebsites.net/sunrise/bachelor"
+    #url="https://bachelorapi.azurewebsites.net/sunrise/seattle"
     #url="https://bachelorapi.azurewebsites.net/sunrise/sisters"
-    #url="https://bachelorapi.azurewebsites.net/sunrise/bachelor"
     #url="https://bachelorapi.azurewebsites.net/sunrise/louis"
     #url="https://bachelorapi.azurewebsites.net/sunrise/hillsboro"
     #url="https://bachelorapi.azurewebsites.net/sunrise/portland"
@@ -161,12 +184,12 @@ while True:
 
         ## Metric
         text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32), 1)) + "\u00B0C  "
-        text_l1_1 = "wind " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " (" +str(int(round(1.6*sensors_json["pine_gust"], 0))) + ") kph "
-        text_l1_2 = "snow " + str(round(0.0254*(sensors_json["snow_depth"]+.5), 2)) + " meter base "
-        text_l1_3 = str(int(round(2.54*report_json['snow_overnight']+.1))) + " cm fresh "
-        text_l1_4 = str(int(round(2.54*report_json['snow_24h']))) + " cm (24h) "
+        text_l1_1 = "winds " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
+        text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " m (snow base) "
+        text_l1_3 = str(int(round(2.54*report_json['snow_overnight']+0.5))) + " cm (fresh)"
+        text_l1_4 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm (24h) "
         if report_json['snow_48h'] > 2.1 * report_json['snow_24h']:
-            text_l1_4 = str(int(round(2.54*report_json['snow_48h']))) + " cm (48h) "
+            text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm (48h) "
         text_l1_5 = "  Report "
 
         ## English
@@ -181,7 +204,7 @@ while True:
         text_l3_1 = weather_text['shortforecast_now']
         text_l3_2 = weather_text['when_later']+" :"
         text_l3_3 = weather_text['shortforecast_later']
-        text_l3_4 = weather_text['when_even_later']+" :"
+        text_l3_4 = "& "+ weather_text['when_even_later']+" :"
         text_l3_5 = weather_text['shortforecast_even_later']
 
 
