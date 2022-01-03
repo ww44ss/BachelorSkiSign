@@ -86,7 +86,7 @@ def sensors():
             text = fetched_data
             retry = False
         except:
-            text = {"cycle": cycle,pine_gust":00,"pine_temp":00,"pine_wind":00,"snow_depth":00}
+            text = {"cycle": cycle, "pine_gust":00,"pine_temp":00,"pine_wind":00,"snow_depth":00}
             cycle += 1
             time.sleep(.75)
 
@@ -112,20 +112,27 @@ def weather():
             text = {"cycle": cycle,"shortforecast_even_later":"Light Snow","shortforecast_later":"Light Snow","shortforecast_now":"Snow","when_even_later":"Saturday","when_later":"Tonight","when_now":"Today"}
     
     #print("/weather ", text)
-    print("url", url, "  API_cycle = ",text[cycle], "web_cycle = ", cycle)
+    print("url", url, "  API_cycle = ",text['cycle'], "web_cycle = ", cycle)
     return text
 
 def report():
     url="https://bachelorapi.azurewebsites.net/report2"
     print("report: ",time.time())
     #print(url)
-    #try:
-    try:
-        fetched_data = json.loads(NETWORK.fetch_data(url))
-        text = fetched_data
-    except:
-        text = {"cycle": cycle,"snow_24h":5.2,"snow_48h":5.2,"snow_overnight":5.2}
-    print("url", url, "  cycle = ",text[cycle])
+    retry = True
+    cycle = 1
+   
+    while (retry == True or cycle >5):
+        try:
+            fetched_data = json.loads(NETWORK.fetch_data(url))
+            retry = False
+            text = fetched_data
+        except:
+            cycle += 1
+            text = {"cycle": cycle,"snow_24h":5.2,"snow_48h":5.2,"snow_overnight":5.2}
+            time.sleep(.75)
+
+    print("url", url, "  API_cycle = ",text['cycle'], "web_cycle = ", cycle)
     return text
 
 def sun():
@@ -171,9 +178,9 @@ while True:
     toggle_l3=3
 
     # make web calls pseudorandom
-    rando1 = 1.1*(int(1000*(time.time())%5879)-1000)/1E4 + 2.4
+    rando1 = 1.1*(int(1000*(time.time())%5879)-1000)/1E4 + 1.6
 
-    #print("time rando1 = ", rando1, " hours")
+    print("time rando1 = ", rando1, " hours")
     gc.collect()
     mem_last_1 = gc.mem_free()
 
@@ -185,12 +192,14 @@ while True:
         ## Metric
         text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32), 1)) + "\u00B0C  "
         text_l1_1 = "winds " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
-        text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " m (snow base) "
+        text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " m (base) "
         text_l1_3 = str(int(round(2.54*report_json['snow_overnight']+0.5))) + " cm (fresh)"
         text_l1_4 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm (24h) "
         if report_json['snow_48h'] > 2.1 * report_json['snow_24h']:
             text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm (48h) "
         text_l1_5 = "  Report "
+        if (sensors_json["pine_temp"] < 25 and report_json['snow_overnight'] > 4):
+            text_l1_5 = "*** POW DAY ***"
 
         ## English
         #text_l1_0 = str(sensors_json["pine_temp"]) + "\u00B0F "
@@ -225,8 +234,8 @@ while True:
         j = 0
         len_l3 = len(text_l3_0)
 
-        rando2 = 2*(int(1000*(time.time())%4919)-200)/1E4 + .5  #in hours
-        #print(rando2, " hours")
+        rando2 = .5*(int(1000*(time.time())%4919)-100)/1E4 + .25  #in hours
+        print(rando2, " hours")
 
         mem_last_2 = gc.mem_free()
 
