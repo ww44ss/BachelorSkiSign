@@ -89,6 +89,7 @@ def weather():
         print('Decoding JSON has failed')
         text = {"shortforecast_even_later":"Light Snow","shortforecast_later":"Light Snow","shortforecast_now":"Snow","when_even_later":"Saturday","when_later":"Tonight","when_now":"Today"}
     #print("/weather ", text)
+    print("url", url, "  cycle = ",cycle)
     return text
 
 def report():
@@ -101,14 +102,14 @@ def report():
         text = fetched_data
     except:
         text = {"snow_24h":5.2,"snow_48h":5.2,"snow_overnight":5.2}
-    #print("/report ",text)
+    print("url", url, "  cycle = ",cycle)
     return text
 
 def sun():
     ## pick appropriate url for location
-    #url="https://bachelorapi.azurewebsites.net/sunrise/seattle"
+    url="https://bachelorapi.azurewebsites.net/sunrise/seattle"
     #url="https://bachelorapi.azurewebsites.net/sunrise/sisters"
-    url="https://bachelorapi.azurewebsites.net/sunrise/bachelor"
+    #url="https://bachelorapi.azurewebsites.net/sunrise/bachelor"
     #url="https://bachelorapi.azurewebsites.net/sunrise/louis"
     #url="https://bachelorapi.azurewebsites.net/sunrise/hillsboro"
     #url="https://bachelorapi.azurewebsites.net/sunrise/portland"
@@ -147,7 +148,7 @@ while True:
     toggle_l3=3
 
     # make web calls pseudorandom
-    rando1 = 2*(int(1000*(time.time())%5879)-1000)/1E4 + 2.4
+    rando1 = 1.1*(int(1000*(time.time())%5879)-1000)/1E4 + 2.4
 
     #print("time rando1 = ", rando1, " hours")
     gc.collect()
@@ -160,15 +161,13 @@ while True:
 
         ## Metric
         text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32), 1)) + "\u00B0C  "
-        text_l1_1 = "wind " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
-        text_l1_2 = "snow " + str(round(0.0254*sensors_json["snow_depth"]+.03, 1)) + " m base "
-        text_l1_3 = str(int(round(2.54*report_json['snow_overnight']))) + " cm fresh "
-        text_l1_4 = str(int(round(2.54*report_json['snow_24h']))) + " cm in 24 h "
+        text_l1_1 = "wind " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " (" +str(int(round(1.6*sensors_json["pine_gust"], 0))) + ") kph "
+        text_l1_2 = "snow " + str(round(0.0254*(sensors_json["snow_depth"]+.5), 2)) + " meter base "
+        text_l1_3 = str(int(round(2.54*report_json['snow_overnight']+.1))) + " cm fresh "
+        text_l1_4 = str(int(round(2.54*report_json['snow_24h']))) + " cm (24h) "
         if report_json['snow_48h'] > 2.1 * report_json['snow_24h']:
-            text_l1_3 = str(int(round(2.54*report_json['snow_48h']))) + " cm in 48 hours "
-        if report_json['snow_overnight'] > 3.9:
-            text_l1_3 = str(int(round(2.54*report_json['snow_overnight']))) + " cm overnight "
-        text_l1_5 = "Conditions"
+            text_l1_4 = str(int(round(2.54*report_json['snow_48h']))) + " cm (48h) "
+        text_l1_5 = "  Report "
 
         ## English
         #text_l1_0 = str(sensors_json["pine_temp"]) + "\u00B0F "
@@ -211,7 +210,7 @@ while True:
         while time.time()-start_time < rando2*60*60:
             if l1_x < -4.5*(len_l1-2):
                 i = 1
-                toggle_l1 = (toggle_l1 + 1)%6
+                toggle_l1 = (toggle_l1 + 1)%5
 
             if toggle_l1 == 0:
                 text_l1 = text_l1_0
