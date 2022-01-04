@@ -268,9 +268,9 @@ while True:
             if toggle_l1 == 3:
                 text_l1 = text_l1_3
                 color_x = 0x878787
-                if report_json['snow_24']>4:
+                if report_json['snow_24h']>4:
                     color_x = 0x8787F7
-                if report_json['snow_24']>8:
+                if report_json['snow_24h']>8:
                     color_x = 0xF7D787
 
             if toggle_l1 == 4:
