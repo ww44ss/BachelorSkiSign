@@ -91,7 +91,7 @@ def sensors():
             time.sleep(.75)
 
 
-    print("url", url, "  API_cycle = ",text[cycle], " display_cycle = ", cycle)
+    print("url", url, "  API_cycle = ",text["cycle"], " display_cycle = ", cycle)
     return text
 
 def weather():
@@ -193,12 +193,12 @@ while True:
         text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32), 1)) + "\u00B0C  "
         text_l1_1 = "winds " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
         text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " m (base) "
-        text_l1_3 = str(int(round(2.54*report_json['snow_overnight']+0.5))) + " cm (fresh)"
-        text_l1_4 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm (24h) "
-        if report_json['snow_48h'] > 2.1 * report_json['snow_24h']:
-            text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm (48h) "
-        text_l1_5 = "  Report "
-        if (sensors_json["pine_temp"] < 25 and report_json['snow_overnight'] > 4):
+        text_l1_3 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm (24h)"
+        text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm (48h) "
+        if report_json['snow_week'] > 2.1 * report_json['snow_48h']:
+            text_l1_4 = str(int(round(2.54*report_json['snow_week']+0.5))) + " cm (week) "
+        text_l1_5 = str(int(round(2.54*report_json['snow_total']+0.5))) + " cm (total) "
+        if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
             text_l1_5 = "*** POW DAY ***"
 
         ## English
@@ -242,7 +242,7 @@ while True:
         while time.time()-start_time < rando2*60*60:
             if l1_x < -4.5*(len_l1-2):
                 i = 1
-                toggle_l1 = (toggle_l1 + 1)%5
+                toggle_l1 = (toggle_l1 + 1)%6
 
             if toggle_l1 == 0:
                 text_l1 = text_l1_0
