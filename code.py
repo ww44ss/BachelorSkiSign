@@ -388,22 +388,6 @@ while True:
             line3.x= int(l3_x)
             line3.y = 5
 
-            #line4 = adafruit_display_text.label.Label(
-            #    FONT,
-            #    color = 0x060614,
-            #    text="Mount")
-            #line4.x= 3
-            #line4.y = 10
-
-            #line5 = adafruit_display_text.label.Label(
-            #    FONT,
-            #    color = 0x060614,
-            #    text="Bachelor")
-            #line5.x= 25
-            #line5.y = 20
-
-            # Put each line into a Group, then show
-
             g = 0
 
             g = displayio.Group(max_size = 3)
