@@ -195,7 +195,7 @@ while True:
         text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " m (base) "
         text_l1_3 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm (24h)"
         text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm (48h) "
-        if report_json['snow_week'] > 2.1 * report_json['snow_48h']:
+        if report_json['snow_7d'] > 2.1 * report_json['snow_48h']:
             text_l1_4 = str(int(round(2.54*report_json['snow_7d']+0.5))) + " cm (7d) "
         text_l1_5 = str(int(round(2.54*report_json['snow_season']+0.5))) + " cm (season) "
         if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
