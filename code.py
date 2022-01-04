@@ -1,8 +1,7 @@
-## 2021.Mar-07 11:30 am
-##    originated
+## 2021.Mar-07: originated
 ## 2021.Aug-13: updated with metric conversion, improved error handling for web requests
 ## 2021,Nov.05: weather uses NWS api results
-## 2022 Jan 02: error handling. 
+## 2022 Jan 04: error handling. weather updates. 
 
 
 ## IMPORT LIBRARIES
@@ -178,9 +177,9 @@ while True:
     toggle_l3=3
 
     # make web calls pseudorandom
-    rando1 = 1.1*(int(1000*(time.time())%5879)-1000)/1E4 + 1.6
+    rando1 = 1*(int(1000*(time.time())%5879)-1000)/1E4 + 1.6
 
-    print("time rando1 = ", rando1, " hours")
+    print("rando1 = ", rando1, " hours")
     gc.collect()
     mem_last_1 = gc.mem_free()
 
@@ -190,7 +189,7 @@ while True:
         sensors_json = sensors()
 
         ## Metric
-        text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32), 1)) + "\u00B0C  "
+        text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32)+.05, 1)) + "\u00B0C  "
         text_l1_1 = "winds " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
         text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " m (base) "
         text_l1_3 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm (24h)"
@@ -199,7 +198,7 @@ while True:
             text_l1_4 = str(int(round(2.54*report_json['snow_7d']+0.5))) + " cm (7d) "
         text_l1_5 = str(int(round(2.54*report_json['snow_season']+0.5))) + " cm (season) "
         if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
-            text_l1_5 = "* * POW ALERT * *"
+            text_l1_5 = "* * POW  DAY * *"
 
         ## English
         #text_l1_0 = str(sensors_json["pine_temp"]) + "\u00B0F "
@@ -235,7 +234,7 @@ while True:
         len_l3 = len(text_l3_0)
 
         rando2 = .5*(int(1000*(time.time())%4919)-100)/1E4 + .25  #in hours
-        print(rando2, " hours")
+        print("rando2 = ", rando2, " hours")
 
         mem_last_2 = gc.mem_free()
 
@@ -268,23 +267,26 @@ while True:
 
             if toggle_l1 == 3:
                 text_l1 = text_l1_3
-                color_x = 0x979797
-                if report_json['snow_overnight']>4:
-                    color_x = 0x8787A7
-                if report_json['snow_overnight']>8:
-                    color_x = 0xA7D7F7
+                color_x = 0x878787
+                if report_json['snow_24']>4:
+                    color_x = 0x8787F7
+                if report_json['snow_24']>8:
+                    color_x = 0xF7D787
 
             if toggle_l1 == 4:
                 text_l1 = text_l1_4
                 color_x = 0x878787
-                if report_json['snow_24h']>8:
-                    color_x = 0x8787A7
-                if report_json['snow_24h']>11:
-                    color_x = 0xA7D7F7
+                if report_json['snow_48h']>8:
+                    color_x = 0x8787F7
+                if report_json['snow_48h']>11:
+                    color_x = 0xF7D787
 
             if toggle_l1 == 5:
                 text_l1 = text_l1_5
                 color_x = 0x8787A7
+                if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
+                    color_x = 0xFFA794
+            
 
             len_l1 = len(text_l1)
 
