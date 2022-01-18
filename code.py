@@ -378,7 +378,7 @@ while True:
 
             len_l3 = len(text_l3)
 
-            l3_x = (-j*2.8)%(64+5*len_l3)-5*len_l3
+            l3_x = (-j*3)%(64+5*len_l3)-5*len_l3
 
             gc.collect()
             #print(mem_last_2, "  ", gc.mem_free(),text_l1, "  ", text_l2, "  ",text_l3 )
