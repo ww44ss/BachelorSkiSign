@@ -42,6 +42,7 @@ DISPLAY = MATRIX.display
 
 FONT = bitmap_font.load_font('/fonts/helvR10.bdf')
 LARGE_FONT = bitmap_font.load_font('/fonts/helvB12.bdf')
+#LARGE_FONT = bitmap_font.load_font('/fonts/helvB14.bdf') #need to load font
 
 DISPLAY.rotation = 0
 
@@ -388,7 +389,8 @@ while True:
                 color = 0x3B66BF,
                 text=text_l3)
             line3.x= int(l3_x)
-            line3.y = 5
+            #line3.y = 5
+            line3.y = 3
 
             g = 0
 
