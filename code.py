@@ -197,7 +197,7 @@ while True:
         text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm in 48 hours"
         if report_json['snow_7d'] > 2.1 * report_json['snow_48h']:
             text_l1_4 = str(int(round(2.54*report_json['snow_7d']+0.5))) + " cm in 7 days"
-        text_l1_5 = str(int(round(0.0254*report_json['snow_season']+0.5),2)) + " meters (season) "
+        text_l1_5 = str(round(0.0254*report_json['snow_season']+0.5,2)) + " meters (season) "
         if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
             text_l1_5 = "* * POW  DAY * *"
 
@@ -339,7 +339,7 @@ while True:
                     k_eff = k
                 else:
                     if k-k_eff < 600:
-                        l2_x = 11
+                        l2_x = 14
                     else:
                         k_eff = k - 600
                         l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
@@ -351,7 +351,7 @@ while True:
                         color=color_2,
                         text=text_l2)
                 line2.x = int(l2_x)
-                line2.y = 14
+                line2.y = 11
 
 
             else:
