@@ -192,12 +192,12 @@ while True:
         ## Metric
         text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32)+.05, 1)) + "\u00B0C  "
         text_l1_1 = "winds " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
-        text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " m (base) "
-        text_l1_3 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm (24h)"
-        text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm (48h) "
+        text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " meter base"
+        text_l1_3 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm in 24 hours"
+        text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm in 48 hours"
         if report_json['snow_7d'] > 2.1 * report_json['snow_48h']:
-            text_l1_4 = str(int(round(2.54*report_json['snow_7d']+0.5))) + " cm (7d) "
-        text_l1_5 = str(int(round(2.54*report_json['snow_season']+0.5))) + " cm (season) "
+            text_l1_4 = str(int(round(2.54*report_json['snow_7d']+0.5))) + " cm in 7 days"
+        text_l1_5 = str(int(round(0.0254*report_json['snow_season']+0.5),2)) + " meters (season) "
         if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
             text_l1_5 = "* * POW  DAY * *"
 
@@ -239,6 +239,25 @@ while True:
 
         mem_last_2 = gc.mem_free()
 
+        time_struct = time.localtime()
+        hour = '{0:0>2}'.format(time_struct.tm_hour)
+        int_hour = int(hour)
+
+        color_x_l1 = 0x979797
+        color_x_l1_blue = 0x9797B7
+        color_x_l1_red = 0xB79797
+        clock_color = 0x45B466
+        color_l3 = 0x3B66BF
+        
+        ## Nightime dimming
+        if int_hour > 20 or int_hour < 7:
+            color_x_l1 = 0x473727
+            color_x_l1_blue = 0x372757
+            color_x_l1_red = 0x772717
+            clock_color = 0x067416
+            color_l3 = 0x3B467F
+           
+
         while time.time()-start_time < rando2*60*60:
             if l1_x < -4.5*(len_l1-2):
                 i = 1
@@ -246,47 +265,42 @@ while True:
 
             if toggle_l1 == 0:
                 text_l1 = text_l1_0
-                color_x = 0x979797
+                color_x = color_x_l1
                 if sensors_json["pine_temp"]<16:
-                    color_x = 0x8DD2A3
+                    color_x = color_x_l1_blue
                 if sensors_json["pine_temp"]>31:
-                    color_x = 0xAD92A3
+                    color_x = color_x_l1_red
 
             if toggle_l1 == 1:
                 text_l1 = text_l1_1
-                color_x = 0x979797
+                color_x = color_x_l1
                 if sensors_json["pine_gust"] > 40:
-                    color_x = 0x9797D7
-                if sensors_json["pine_gust"] > 60:
-                    color_x = 0x9797E7
+                    color_x = color_l1_x_red
+              
 
             if toggle_l1 == 2:
                 text_l1 = text_l1_2
-                color_x = 0x979797
-                if sensors_json["snow_depth"]>72:
-                    color_x = 0xD7D7A7
+                color_x = color_x_l1_red
+                if sensors_json["snow_depth"]>48:
+                    color_x = color_x_l1
 
             if toggle_l1 == 3:
                 text_l1 = text_l1_3
-                color_x = 0x878787
-                if report_json['snow_24h']>4:
-                    color_x = 0x8787F7
+                color_x = color_x_l1
                 if report_json['snow_24h']>8:
-                    color_x = 0xF7D787
+                    color_x = color_x_l1_blue
 
             if toggle_l1 == 4:
                 text_l1 = text_l1_4
-                color_x = 0x878787
-                if report_json['snow_48h']>8:
-                    color_x = 0x8787F7
+                color_x = color_x_l1
                 if report_json['snow_48h']>11:
-                    color_x = 0xF7D787
+                    color_x = color_x_l1_blue
 
             if toggle_l1 == 5:
                 text_l1 = text_l1_5
-                color_x = 0x8787A7
+                color_x = color_x_l1
                 if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
-                    color_x = 0xFFA794
+                    color_x = color_x_l1_blue
             
 
             len_l1 = len(text_l1)
@@ -347,7 +361,7 @@ while True:
                 l2_x = (-k_eff*4.3)%(64+5*len_l2)-5*len_l2
                 line2 = adafruit_display_text.label.Label(
                     FONT,
-                    color=0xC78200,
+                    color=clock_color,
                     text=text_l2)
                 line2.x = int(l2_x)
                 line2.y = 14
@@ -386,7 +400,7 @@ while True:
 
             line3 = adafruit_display_text.label.Label(
                 FONT,
-                color = 0x3B66BF,
+                color = color_l3,
                 text=text_l3)
             line3.x= int(l3_x)
             #line3.y = 5
