@@ -190,9 +190,9 @@ while True:
         sensors_json = sensors()
 
         ## Metric
-        text_l1_0 = str(round(.556*(sensors_json["pine_temp"]-32)+.05, 1)) + "\u00B0C  "
+        text_l1_0 = "Temperature" + str(round(.556*(sensors_json["pine_temp"]-32)+.05, 1)) + "\u00B0C  "
         text_l1_1 = "winds " + str(int(round(1.6*sensors_json["pine_wind"], 0))) + " to " +str(int(round(1.6*sensors_json["pine_gust"], 0))) + " kph "
-        text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 2)) + " meter base"
+        text_l1_2 = str(round(0.0254*(sensors_json["snow_depth"]+.005), 3)) + " meter base"
         text_l1_3 = str(int(round(2.54*report_json['snow_24h']+0.5))) + " cm in 24 hours"
         text_l1_4 = str(int(round(2.54*report_json['snow_48h']+0.5))) + " cm in 48 hours"
         if report_json['snow_7d'] > 2.1 * report_json['snow_48h']:
@@ -209,12 +209,12 @@ while True:
         #text_l1_4 = str(report_json['snow_24h']) + " \" / 24hours "
 
         weather_text = weather()
-        text_l3_0 = weather_text['when_now']+" :"
-        text_l3_1 = weather_text['shortforecast_now']
-        text_l3_2 = weather_text['when_later']+" :"
-        text_l3_3 = weather_text['shortforecast_later']
-        text_l3_4 = "& "+ weather_text['when_even_later']+" :"
-        text_l3_5 = weather_text['shortforecast_even_later']
+        text_l3_0 = weather_text['when_now']+" : " + weather_text['shortforecast_now']
+        #text_l3_1 = weather_text['shortforecast_now']
+        text_l3_1 = weather_text['when_later']+" : " + weather_text['shortforecast_later']
+        #text_l3_3 = weather_text['shortforecast_later']
+        text_l3_2 = "& "+ weather_text['when_even_later']+" : " + weather_text['shortforecast_even_later']
+        #text_l3_5 = weather_text['shortforecast_even_later']
 
 
         flip_l2 = True
@@ -364,13 +364,13 @@ while True:
                     color=clock_color,
                     text=text_l2)
                 line2.x = int(l2_x)
-                line2.y = 14
+                line2.y = 10
 
             ## TEXT 3
 
             if l3_x < -4*(len_l3-3):
                 j = 1
-                toggle_l3 = (toggle_l3 + 1)%6
+                toggle_l3 = (toggle_l3 + 1)%3
 
             if toggle_l3 == 0:
                 text_l3 = text_l3_0 + "  "
