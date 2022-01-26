@@ -325,7 +325,7 @@ while True:
                     k_eff = k
                 else:
                     if k-k_eff < 600:
-                        l2_x = 16
+                        l2_x = 11
                     else:
                         k_eff = k - 600
                         l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
@@ -337,7 +337,7 @@ while True:
                         color=color_2,
                         text=text_l2)
                 line2.x = int(l2_x)
-                line2.y = 16
+                line2.y = 14
 
 
             else:
@@ -347,7 +347,7 @@ while True:
                 l2_x = (-k_eff*4.3)%(64+5*len_l2)-5*len_l2
                 line2 = adafruit_display_text.label.Label(
                     FONT,
-                    color=0xD79200,
+                    color=0xC78200,
                     text=text_l2)
                 line2.x = int(l2_x)
                 line2.y = 14
