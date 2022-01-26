@@ -1,7 +1,7 @@
 ## 2021.Mar-07: originated
 ## 2021.Aug-13: updated with metric conversion, improved error handling for web requests
 ## 2021,Nov.05: weather uses NWS api results
-## 2022 Jan 04: error handling. weather updates. 
+## 2022 Jan 04: error handling. weather updates. large font
 
 
 ## IMPORT LIBRARIES
@@ -41,8 +41,8 @@ MATRIX = Matrix(bit_depth=BITPLANES)
 DISPLAY = MATRIX.display
 
 FONT = bitmap_font.load_font('/fonts/helvR10.bdf')
-LARGE_FONT = bitmap_font.load_font('/fonts/helvB12.bdf')
-#LARGE_FONT = bitmap_font.load_font('/fonts/helvB14.bdf') #need to load font
+#LARGE_FONT = bitmap_font.load_font('/fonts/helvB12.bdf')
+LARGE_FONT = bitmap_font.load_font('/fonts/helvB14.bdf') #need to update font library
 
 DISPLAY.rotation = 0
 
@@ -178,7 +178,7 @@ while True:
     toggle_l3=3
 
     # make web calls pseudorandom
-    rando1 = 1*(int(1000*(time.time())%5879)-1000)/1E4 + 1.6
+    rando1 = .2*(int(1000*(time.time())%5879)-1000)/1E4 + .5
 
     print("rando1 = ", rando1, " hours")
     gc.collect()
@@ -234,7 +234,7 @@ while True:
         j = 0
         len_l3 = len(text_l3_0)
 
-        rando2 = .5*(int(1000*(time.time())%4919)-100)/1E4 + .25  #in hours
+        rando2 = .2*(int(1000*(time.time())%4919)-1000)/1E4 + .25  #in hours
         print("rando2 = ", rando2, " hours")
 
         mem_last_2 = gc.mem_free()
@@ -330,7 +330,7 @@ while True:
                         k_eff = k - 600
                         l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
 
-                color_2 = 0x017220
+                color_2 = 0x419240
 
                 line2 = adafruit_display_text.label.Label(
                         LARGE_FONT,
@@ -350,7 +350,7 @@ while True:
                     color=0xD79200,
                     text=text_l2)
                 line2.x = int(l2_x)
-                line2.y = 16
+                line2.y = 14
 
             ## TEXT 3
 
