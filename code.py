@@ -262,7 +262,7 @@ while True:
         while time.time()-start_time < rando2*60*60:
             if l1_x < -4.5*(len_l1-2):
                 i = 1
-                toggle_l1 = (toggle_l1 + 1)%6
+                toggle_l1 = (toggle_l1 + 1)%5
 
             if toggle_l1 == 0:
                 text_l1 = text_l1_0
