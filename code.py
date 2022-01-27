@@ -252,11 +252,11 @@ while True:
         
         ## Nightime dimming
         if int_hour > 20 or int_hour < 7:
-            color_x_l1 = 0x151510
+            color_x_l1 = 0x001010
             color_x_l1_blue = 0x0D0410
             color_x_l1_red = 0x180505
             clock_color = 0x121003
-            color_l3 = 0x20202D
+            color_l3 = 0x10102D
            
 
         while time.time()-start_time < rando2*60*60:
