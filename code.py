@@ -252,11 +252,11 @@ while True:
         
         ## Nightime dimming
         if int_hour > 20 or int_hour < 7:
-            color_x_l1 = 0x473727
-            color_x_l1_blue = 0x372757
-            color_x_l1_red = 0x772717
-            clock_color = 0x067416
-            color_l3 = 0x3B467F
+            color_x_l1 = 0x151510
+            color_x_l1_blue = 0x0D0410
+            color_x_l1_red = 0x180505
+            clock_color = 0x121003
+            color_l3 = 0x20202D
            
 
         while time.time()-start_time < rando2*60*60:
@@ -276,7 +276,7 @@ while True:
                 text_l1 = text_l1_1
                 color_x = color_x_l1
                 if sensors_json["pine_gust"] > 40:
-                    color_x = color_l1_x_red
+                    color_x = color_x_l1_red
               
 
             if toggle_l1 == 2:
@@ -352,7 +352,7 @@ while True:
                         k_eff = k - 600
                         l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
 
-                color_2 = 0x419240
+                color_2 = clock_color
 
                 line2 = adafruit_display_text.label.Label(
                         LARGE_FONT,
