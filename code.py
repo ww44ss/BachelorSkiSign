@@ -196,6 +196,7 @@ while True:
         text_l1_3 = str(round(2.54*report_json['snow_24h']+0.05,1)) + " cm in 24 hours"
         text_l1_4 = str(round(2.54*report_json['snow_48h']+0.05,1)) + " cm in 48 hours"
         text_l1_4_2 = str(round(2.54*report_json['snow_7d']+0.5,2 )) + " cm in 7 days"
+        text_l1_4_2 = "No new snow in 7 days"
         if report_json['snow_7d'] > 2.1 * report_json['snow_48h']:
             text_l1_4 = str(round(2.54*report_json['snow_7d']+0.5,2 )) + " cm in 7 days"
         text_l1_5 = str(round(0.0254*report_json['snow_season']+0.05,1)) + " meters (season) "
@@ -244,19 +245,19 @@ while True:
         hour = '{0:0>2}'.format(time_struct.tm_hour)
         int_hour = int(hour)
 
-        color_x_l1 = 0x979797
-        color_x_l1_blue = 0x9797B7
+        color_x_l1 = 0x9797A7
+        color_x_l1_blue = 0x9797D7
         color_x_l1_red = 0xB79797
         clock_color = 0x45B466
         color_l3 = 0x3B66BF
         
         ## Nightime dimming
         if int_hour > 20 or int_hour < 7:
-            color_x_l1 = 0x001010
-            color_x_l1_blue = 0x0D0410
-            color_x_l1_red = 0x180505
-            clock_color = 0x121003
-            color_l3 = 0x10102D
+            color_x_l1 = 0x100000
+            color_x_l1_blue = 0x100000
+            color_x_l1_red = 0x200000
+            clock_color = 0x101000
+            color_l3 = 0x100000
            
 
         while time.time()-start_time < rando2*60*60:
@@ -296,6 +297,8 @@ while True:
                         color_x = color_x_l1_blue
                     if report_json['snow_48h'] == 0:
                         text_l1 = text_l1_4_2
+                    if report_json['snow_7d'] == 0:
+                        text_l1 = text_l1_4_3
                     
                 
             #if toggle_l1 == 4:    # old code
