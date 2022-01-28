@@ -255,9 +255,9 @@ while True:
         if int_hour > 20 or int_hour < 7:
             color_x_l1 = 0x100000
             color_x_l1_blue = 0x100000
-            color_x_l1_red = 0x200000
+            color_x_l1_red = 0x100000
             clock_color = 0x101000
-            color_l3 = 0x100000
+            color_l3 = 0x000010
            
 
         while time.time()-start_time < rando2*60*60:
