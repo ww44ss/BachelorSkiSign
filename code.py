@@ -2,6 +2,7 @@
 ## 2021.Aug-13: updated with metric conversion, improved error handling for web requests
 ## 2021,Nov.05: weather uses NWS api results
 ## 2022 Jan 04: error handling. weather updates. large font
+## 2022 Feb 08: updated for CircuitPython 7.1
 
 
 ## IMPORT LIBRARIES
@@ -54,7 +55,7 @@ def set_rtc():
     #print(url_time)
     retry = True
     cycle = 1
-   
+
     while (retry == True or cycle >5):
         try:
             fetched_data = json.loads(NETWORK.fetch_data(url))
@@ -63,7 +64,7 @@ def set_rtc():
             fetched_data = {"$id":"1","currentDateTime":"2021-08-31T12:43-07:00","utcOffset":"-07:00:00","isDayLightSavingsTime":true,"dayOfTheWeek":"Tuesday","timeZoneName":"Pacific Standard Time","currentFileTime":132748873890339258,"ordinalDate":"2021-243","serviceResponse":null}
             cycle += 1
             time.sleep(1.0*cycle)
-            
+
     time_date = fetched_data['currentDateTime']
     y_m_d_h_m_s = time_date.split('T')[0].split('-')+ time_date.split('T')[1].split('-')[0].split(':')
     y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['0', 0, '-1','-1']]
@@ -79,7 +80,7 @@ def sensors():
     #print(url)
     retry = True
     cycle = 1
-   
+
     while (retry == True or cycle >5):
         try:
             fetched_data = json.loads(NETWORK.fetch_data(url))
@@ -99,7 +100,7 @@ def weather():
     #print(url)
     retry = True
     cycle = 1
-   
+
     while (retry == True or cycle >5):
         try:
             fetched_data = json.loads(NETWORK.fetch_data(url))
@@ -110,7 +111,7 @@ def weather():
             cycle += 1
             time.sleep(.75)
             text = {"cycle": cycle,"shortforecast_even_later":"Light Snow","shortforecast_later":"Light Snow","shortforecast_now":"Snow","when_even_later":"Saturday","when_later":"Tonight","when_now":"Today"}
-    
+
     #print("/weather ", text)
     print("url", url, "  API_cycle = ",text['cycle'], "web_cycle = ", cycle)
     return text
@@ -121,7 +122,7 @@ def report():
     #print(url)
     retry = True
     cycle = 1
-   
+
     while (retry == True or cycle >5):
         try:
             fetched_data = json.loads(NETWORK.fetch_data(url))
@@ -195,20 +196,13 @@ while True:
         text_l1_2 = str(round(0.0254*sensors_json["snow_depth"]+.05, 1)) + " meter base"
         text_l1_3 = str(round(2.54*report_json['snow_24h']+0.05,1)) + " cm in 24 hours"
         text_l1_4 = str(round(2.54*report_json['snow_48h']+0.05,1)) + " cm in 48 hours"
-        text_l1_4_2 = str(round(2.54*report_json['snow_7d']+0.5,2 )) + " cm in 7 days"
-        text_l1_4_2 = "No new snow in 7 days"
+        text_l1_4_2 = str(round(2.54*report_json['snow_7d']+0.05,1 )) + " cm in 7 days"
+        text_l1_4_3 = "No new snow in 7 days"
         if report_json['snow_7d'] > 2.1 * report_json['snow_48h']:
             text_l1_4 = str(round(2.54*report_json['snow_7d']+0.5,2 )) + " cm in 7 days"
-        text_l1_5 = str(round(0.0254*report_json['snow_season']+0.05,1)) + " meters (season) "
+        text_l1_5 = str(round(0.0254*report_json['snow_season']+0.05,1)) + " meters season "
         if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
             text_l1_5 = "* * POW  DAY * *"
-
-        ## English
-        #text_l1_0 = str(sensors_json["pine_temp"]) + "\u00B0F "
-        #text_l1_1 = str(round(sensors_json["pine_wind"], 0)) + " to " +str(round(sensors_json["pine_gust"], 0)) + " mph "
-        #text_l1_2 = str(sensors_json["snow_depth"]) + " \""
-        #text_l1_3 = str(report_json['snow_overnight']) + " \" fresh "
-        #text_l1_4 = str(report_json['snow_24h']) + " \" / 24hours "
 
         weather_text = weather()
         text_l3_0 = weather_text['when_now']+" : " + weather_text['shortforecast_now']
@@ -217,7 +211,6 @@ while True:
         #text_l3_3 = weather_text['shortforecast_later']
         text_l3_2 = "& "+ weather_text['when_even_later']+" : " + weather_text['shortforecast_even_later']
         #text_l3_5 = weather_text['shortforecast_even_later']
-
 
         flip_l2 = True
 
@@ -244,23 +237,25 @@ while True:
         time_struct = time.localtime()
         hour = '{0:0>2}'.format(time_struct.tm_hour)
         int_hour = int(hour)
+        print(int_hour)
 
-        color_x_l1 = 0x9797A7
-        color_x_l1_blue = 0x9797D7
+        color_x_l1 = 0x979797
+        color_x_l1_blue = 0x9797B7
         color_x_l1_red = 0xB79797
         clock_color = 0x45B466
         color_l3 = 0x3B66BF
-        
+
         ## Nightime dimming
-        if int_hour > 20 or int_hour < 7:
+        if int_hour > 21 or int_hour < 6:
             color_x_l1 = 0x100000
-            color_x_l1_blue = 0x100000
+            color_x_l1_blue = 0x100010
             color_x_l1_red = 0x100000
             clock_color = 0x101000
-            color_l3 = 0x000010
-           
+            color_l3 = 0x100000
+
 
         while time.time()-start_time < rando2*60*60:
+            #print("here")
             if l1_x < -4.5*(len_l1-2):
                 i = 1
                 toggle_l1 = (toggle_l1 + 1)%5
@@ -278,7 +273,7 @@ while True:
                 color_x = color_x_l1
                 if sensors_json["pine_gust"] > 40:
                     color_x = color_x_l1_red
-              
+
 
             if toggle_l1 == 2:
                 text_l1 = text_l1_2
@@ -299,8 +294,9 @@ while True:
                         text_l1 = text_l1_4_2
                     if report_json['snow_7d'] == 0:
                         text_l1 = text_l1_4_3
-                    
-                
+
+
+
             #if toggle_l1 == 4:    # old code
             #    text_l1 = text_l1_4
             #    color_x = color_x_l1
@@ -312,7 +308,7 @@ while True:
                 color_x = color_x_l1
                 if (sensors_json["pine_temp"] < 25 and report_json['snow_24h'] > 4):
                     color_x = color_x_l1_blue
-            
+
 
             len_l1 = len(text_l1)
 
@@ -333,49 +329,77 @@ while True:
             time_scroll_since = time.time() - last_scroll
             l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
 
-            if l2_x < -4.5*len_l2:
-                k = 1
-                k_eff = 1
-                flip_l2 = not(flip_l2)
+            text_l2 = time_now
+            color_2 = clock_color
 
-            dl2_y = 0
-            if (i+j+k)%91 == 0:
-                dl2_y = (i+j+k)%3-1
-
-            if flip_l2:
-                text_l2 = time_now
-                len_l2 = len(text_l2)
-                l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
-                if l2_x > 18:
-                    k_eff = k
-                else:
-                    if k-k_eff < 600:
-                        l2_x = 10
-                    else:
-                        k_eff = k - 600
-                        l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
-
-                color_2 = clock_color
-
-                line2 = adafruit_display_text.label.Label(
-                        LARGE_FONT,
-                        color=color_2,
-                        text=text_l2)
-                line2.x = int(l2_x)
-                line2.y = 14
-
-
-            else:
-                k_eff=k
-                text_l2 = sun_text
-                len_l2 = len(sun_text)
-                l2_x = (-k_eff*4.3)%(64+5*len_l2)-5*len_l2
-                line2 = adafruit_display_text.label.Label(
-                    FONT,
-                    color=clock_color,
+            line2 = adafruit_display_text.label.Label(
+                    LARGE_FONT,
+                    color=color_2,
                     text=text_l2)
-                line2.x = int(l2_x)
+            line2.x = 10
+            line2.y = 14
+            
+            if (k+2*i+3*j)%182 == 0:
+                line2.x = 9
+            
+            if (2*k+i+3*j)%261 == 0:
+                line2.y = 13
+                
+            if (2*k+i+3*j)%263 == 6:
                 line2.y = 15
+            
+            if ((k+2*i+3*j)%182 == 6) and (k%2 == 0):
+                line2.x = 11
+                line2.y = 15
+                
+            print((k+2*i+3*j), " %50 =", (k+2*i+3*j)%50, "  ", (2*k+i+3*j), "  %63 =",(2*k+i+3*j)%63)
+                
+            
+            
+#FOR SCROLLING SUNRISE AND SUNSET
+#            if l2_x < -4.5*len_l2:
+#                k = 1
+#                k_eff = 1
+#                flip_l2 = not(flip_l2)
+#
+#            dl2_y = 0
+#            if (i+j+k)%91 == 0:
+#                dl2_y = (i+j+k)%3-1
+#
+#            if flip_l2:
+#                text_l2 = time_now
+#                len_l2 = len(text_l2)
+#                l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
+#                if l2_x > 18:
+#                    k_eff = k
+#                else:
+#                    if k-k_eff < 600:
+#                        l2_x = 10
+#                    else:
+#                        k_eff = k - 600
+#                        l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
+#
+#                color_2 = clock_color
+#
+#                line2 = adafruit_display_text.label.Label(
+#                        LARGE_FONT,
+#                        color=color_2,
+#                        text=text_l2)
+#                line2.x = int(l2_x)
+#                line2.y = 14
+
+
+   #         else:
+   #             k_eff=k
+  #              text_l2 = sun_text
+  #              len_l2 = len(sun_text)
+  #              l2_x = (-k_eff*4.3)%(64+5*len_l2)-5*len_l2
+  #              line2 = adafruit_display_text.label.Label(
+  #                  FONT,
+  #                  color=clock_color,
+  #                  text=text_l2)
+  #              line2.x = int(l2_x)
+  #              line2.y = 15
 
             ## TEXT 3
 
@@ -384,7 +408,7 @@ while True:
                 toggle_l3 = (toggle_l3 + 1)%3
 
             if toggle_l3 == 0:
-                text_l3 = text_l3_0 
+                text_l3 = text_l3_0
 
             if toggle_l3 == 1:
                 #print(J, text_l3_1, l3_x, -4.7*len_l3)
@@ -407,7 +431,7 @@ while True:
             l3_x = (-j*2)%(64+5*len_l3)-5*len_l3
 
             gc.collect()
-            #print(mem_last_2, "  ", gc.mem_free(),text_l1, "  ", text_l2, "  ",text_l3 )
+            print(mem_last_2, "  ", gc.mem_free(),text_l1, "  ", text_l2, "  ",text_l3 )
 
             line3 = adafruit_display_text.label.Label(
                 FONT,
@@ -417,13 +441,11 @@ while True:
             #line3.y = 5
             line3.y = 3
 
-            g = 0
-
-            g = displayio.Group(max_size = 3)
+            g = displayio.Group()
             g.append(line1)
             g.append(line2)
             g.append(line3)
-       
+
 
             DISPLAY.show(g)
             # clean up memory and pause
