@@ -216,7 +216,7 @@ while True:
 
         i = 1
 
-        len_l1 = len(text_l1_0)
+        len_l1 = max(len(text_l1_0), len(text_l1_1), len(text_l1_2), len(text_l1_4), len(text_l1_5))
 
         k = 1
         k_eff=1
@@ -227,7 +227,7 @@ while True:
 
         #l_3
         j = 0
-        len_l3 = len(text_l3_0)
+        len_l3 = max(len(text_l3_0), len(text_l3_1), len(text_l3_2))
 
         rando2 = .2*(int(1000*(time.time())%4919)-1000)/1E4 + .25  #in hours
         print("rando2 = ", rando2, " hours")
@@ -312,7 +312,7 @@ while True:
 
             len_l1 = len(text_l1)
 
-            l1_x = (-i*3)%(64+5*len_l1)-5*len_l1
+            l1_x = (-i*3.2)%(64+5*len_l1)-5*len_l1
 
             line1 = adafruit_display_text.label.Label(
                 FONT,
@@ -332,6 +332,22 @@ while True:
             text_l2 = time_now
             color_2 = clock_color
 
+            ## Glitch Time Display
+            if (k+2*i+3*j)%212 == 0:
+                line2.x = 9
+                line2.y = 12
+                color_2 = color_2 + 0x000010
+                
+            if (2*k+i+3*j)%263 == 6:
+                line2.y = 15
+                line2.x = 13
+                color_2 = color_2 + 0x001000
+            
+            if (k+2*i+3*j)%212 == 6:
+                line2.x = 7
+                line2.y = 15
+                color_2 = color_2 + 0x101000
+
             line2 = adafruit_display_text.label.Label(
                     LARGE_FONT,
                     color=color_2,
@@ -339,20 +355,9 @@ while True:
             line2.x = 10
             line2.y = 14
             
-            if (k+2*i+3*j)%182 == 0:
-                line2.x = 9
             
-            if (2*k+i+3*j)%261 == 0:
-                line2.y = 13
                 
-            if (2*k+i+3*j)%263 == 6:
-                line2.y = 15
-            
-            if ((k+2*i+3*j)%182 == 6) and (k%2 == 0):
-                line2.x = 11
-                line2.y = 15
-                
-            print((k+2*i+3*j), " %50 =", (k+2*i+3*j)%50, "  ", (2*k+i+3*j), "  %63 =",(2*k+i+3*j)%63)
+            #print((k+2*i+3*j), " %50 =", (k+2*i+3*j)%50, "  ", (2*k+i+3*j), "  %63 =",(2*k+i+3*j)%63)
                 
             
             
@@ -431,14 +436,12 @@ while True:
             l3_x = (-j*2)%(64+5*len_l3)-5*len_l3
 
             gc.collect()
-            print(mem_last_2, "  ", gc.mem_free(),text_l1, "  ", text_l2, "  ",text_l3 )
-
+            #print(mem_last_2, "  ", gc.mem_free(),text_l1, "  ", text_l2, "  ",text_l3 )
             line3 = adafruit_display_text.label.Label(
                 FONT,
                 color = color_l3,
                 text=text_l3)
             line3.x= int(l3_x)
-            #line3.y = 5
             line3.y = 3
 
             g = displayio.Group()
