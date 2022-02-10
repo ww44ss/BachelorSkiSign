@@ -7,6 +7,8 @@ It is written in Ciruit Python for the Adafruit M4 controller and display board.
 You also need to download the most recent version of the [CircuitPython uf2](https://learn.adafruit.com/welcome-to-circuitpython/installing-circuitpython).
 To install it press the reset button on your board *twice* to enter the boot loader mode on the board computer. You'll recongize this because a boot loader directory will appear on the screen of your host computer. Just frag the new uf2 into the boot loader directory and you will be good to go!
 
+## files   
+
 *Code.py*     
 Python code for the sign
 
@@ -24,10 +26,10 @@ It is of the format
 }`
 
 
-Recent changes:
-## 2021.Mar-07: originated
-## 2021.Aug-13: updated with metric conversion, improved error handling for web requests
-## 2021,Nov.05: weather uses NWS api results
-## 2022 Jan 04: error handling. weather updates. large font
-## 2022 Feb 08: updated for CircuitPython 7.1, updated RTC to use time from Azure. Added watchdog timer to reset upon stall
+## Recent changes:
+- 2021.Mar-07: originated
+- 2021.Aug-13: updated with metric conversion, improved error handling for web requests
+- 2021,Nov.05: weather uses NWS api results
+- 2022 Jan 04: error handling. weather updates. large font
+- 2022 Feb 08: updated for CircuitPython 7.1, updated RTC to use time from Azure. Added watchdog timer to reset upon stall
 
