@@ -2,7 +2,7 @@
 ## 2021.Aug-13: updated with metric conversion, improved error handling for web requests
 ## 2021,Nov.05: weather uses NWS api results
 ## 2022 Jan 04: error handling. weather updates. large font
-## 2022 Feb 08: updated for CircuitPython 7.1
+## 2022 Feb 08: updated for CircuitPython 7.1, updated RTC. Added watchdog
 
 
 ## IMPORT LIBRARIES
@@ -11,6 +11,8 @@ import busio
 import displayio
 from rtc import RTC
 from adafruit_matrixportal.network import Network
+from microcontroller import watchdog as w
+from watchdog import WatchDogMode
 from adafruit_matrixportal.matrix import Matrix
 from adafruit_bitmap_font import bitmap_font
 import adafruit_display_text.label
@@ -50,9 +52,10 @@ DISPLAY.rotation = 0
 NETWORK = Network(status_neopixel=board.NEOPIXEL, debug=False)
 NETWORK.connect()
 
+
 def set_rtc():
-    url = "http://worldclockapi.com/api/json/pst/now"
-    #print(url_time)
+    url = "https://bachelorapi.azurewebsites.net/time"
+    print(url)
     retry = True
     cycle = 1
 
@@ -61,15 +64,17 @@ def set_rtc():
             fetched_data = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            fetched_data = {"$id":"1","currentDateTime":"2021-08-31T12:43-07:00","utcOffset":"-07:00:00","isDayLightSavingsTime":true,"dayOfTheWeek":"Tuesday","timeZoneName":"Pacific Standard Time","currentFileTime":132748873890339258,"ordinalDate":"2021-243","serviceResponse":null}
+            fetched_data = '{"time":"2022-02-10T17:00"}'  # Dummy Data
             cycle += 1
             time.sleep(1.0*cycle)
 
-    time_date = fetched_data['currentDateTime']
+    time_date = fetched_data['time']+"-07:00"
     y_m_d_h_m_s = time_date.split('T')[0].split('-')+ time_date.split('T')[1].split('-')[0].split(':')
-    y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['0', 0, '-1','-1']]
+
+    y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['45', 0, '-1','-1']]
+    y_m_d_h_m_s[3] = (y_m_d_h_m_s[3]-8)%24  ## Adjust timezone
     y_m_d_h_m_s = tuple(y_m_d_h_m_s)
-    #print("RTC = ", y_m_d_h_m_s)
+    print("RTC = ", y_m_d_h_m_s)
     ## set RTC
     RTC().datetime = time.struct_time(y_m_d_h_m_s)
     print("url", url, "  cycle = ",cycle)
@@ -151,7 +156,15 @@ def sun():
         text = {"name":"error","sun":"00:01  -  23:59"}
     return text
 
+
+
+## Set up WatchDogMode
+w.timeout = 15 # seconds until watchdog timeout
+w.mode = WatchDogMode.RESET  # reset system upon timeout
+w.feed()
+
 while True:
+    
     ## big loop checks weather, sun, report every ~2.8 hours
     big_time = time.time()
 
@@ -186,7 +199,8 @@ while True:
     mem_last_1 = gc.mem_free()
 
     while time.time()-big_time < rando1*60*60:
-
+        w.feed()
+        
         report_json = report()
         sensors_json = sensors()
 
@@ -255,6 +269,8 @@ while True:
 
 
         while time.time()-start_time < rando2*60*60:
+            w.feed()
+            
             #print("here")
             if l1_x < -4.5*(len_l1-2):
                 i = 1
@@ -333,20 +349,20 @@ while True:
             color_2 = clock_color
 
             ## Glitch Time Display
-            if (k+2*i+3*j)%212 == 0:
+            if (k+2*i+3*j)%312 == 0:
                 line2.x = 9
                 line2.y = 12
-                color_2 = color_2 + 0x000010
-                
-            if (2*k+i+3*j)%263 == 6:
+                color_2 = color_2 + 0x000020
+
+            if (2*k+i+3*j)%363 == 6:
                 line2.y = 15
                 line2.x = 13
-                color_2 = color_2 + 0x001000
-            
-            if (k+2*i+3*j)%212 == 6:
-                line2.x = 7
+                color_2 = color_2 + 0x002000
+
+            if (k+2*i+2*j)%312 == 6:
+                line2.x = 11
                 line2.y = 15
-                color_2 = color_2 + 0x101000
+                color_2 = 0x001000
 
             line2 = adafruit_display_text.label.Label(
                     LARGE_FONT,
@@ -354,13 +370,13 @@ while True:
                     text=text_l2)
             line2.x = 10
             line2.y = 14
-            
-            
-                
+
+
+
             #print((k+2*i+3*j), " %50 =", (k+2*i+3*j)%50, "  ", (2*k+i+3*j), "  %63 =",(2*k+i+3*j)%63)
-                
-            
-            
+
+
+
 #FOR SCROLLING SUNRISE AND SUNSET
 #            if l2_x < -4.5*len_l2:
 #                k = 1
