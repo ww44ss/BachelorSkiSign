@@ -1,15 +1,15 @@
 # BachelorSkiSign
-Python Repository for Bachelor Ski Sign. This application reads data from https://bachelorapi.azurewebsites.net/ 
+Python Repository for Bachelor Ski Sign. This application reads data from an [api](https://bachelorapi.azurewebsites.net/) curretly running on Azure
 It is written in Ciruit Python for the Adafruit M4 controller and display board. 
 - [Adafruit Matrix Portal M4](https://www.adafruit.com/product/4745)   
 - [64x32 RGB LED Matrix - 3mm pitch](https://www.adafruit.com/product/2279)
 
-
+You also need to download the most recent version of the [CircuitPython](https://learn.adafruit.com/welcome-to-circuitpython/installing-circuitpython) uf2 and install it by pressing the reset button twice to enter te boot loader mode. You'll recongiz this because oa boot loader directory will appear on the screen of your host computer. 
 
 *Code.py*     
 Python code for the sign
 
-Your board will also need the file:     
+Your board will also need:     
 *Secrets.py*   
      
 A file containing wifi passwords for your local network and your local latitude and longitude
@@ -17,7 +17,16 @@ It is of the format
 `secrets = {
     'ssid'      : 'Your_Local_Wifi_SSID',
     'password'  : 'Your_Password',
-    'latitude'  : 43.97942,
-    'longitude' : -121.68873,
+    'latitude'  : Your_Latitude,
+    'longitude' : Your Longitude,
     'timezone'  : 'America/Los_Angeles'
 }`
+
+
+Recent changes:
+## 2021.Mar-07: originated
+## 2021.Aug-13: updated with metric conversion, improved error handling for web requests
+## 2021,Nov.05: weather uses NWS api results
+## 2022 Jan 04: error handling. weather updates. large font
+## 2022 Feb 08: updated for CircuitPython 7.1, updated RTC to use time from Azure. Added watchdog timer to reset upon stall
+
