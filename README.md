@@ -21,15 +21,16 @@ It is of the format
     'ssid'      : 'Your_Local_Wifi_SSID',
     'password'  : 'Your_Password',
     'latitude'  : Your_Latitude,
-    'longitude' : Your Longitude,
+    'longitude' : Your_Longitude,
     'timezone'  : 'America/Los_Angeles'
 }`
 
 
-## Recent changes:
+## recent changes:
 - 2021.Mar-07: originated
 - 2021.Aug-13: updated with metric conversion, improved error handling for web requests
 - 2021,Nov.05: weather uses NWS api results
 - 2022 Jan 04: error handling. weather updates. large font
+- 2202 Jan 31: removed sunrise sunset from display. added 'conversational' intelligence
 - 2022 Feb 08: updated for CircuitPython 7.1, updated RTC to use time from Azure. Added watchdog timer to reset upon stall
 
