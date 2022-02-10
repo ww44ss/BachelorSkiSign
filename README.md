@@ -4,7 +4,8 @@ It is written in Ciruit Python for the Adafruit M4 controller and display board.
 - [Adafruit Matrix Portal M4](https://www.adafruit.com/product/4745)   
 - [64x32 RGB LED Matrix - 3mm pitch](https://www.adafruit.com/product/2279)
 
-You also need to download the most recent version of the [CircuitPython](https://learn.adafruit.com/welcome-to-circuitpython/installing-circuitpython) uf2 and install it by pressing the reset button twice to enter te boot loader mode. You'll recongiz this because oa boot loader directory will appear on the screen of your host computer. 
+You also need to download the most recent version of the [CircuitPython uf2](https://learn.adafruit.com/welcome-to-circuitpython/installing-circuitpython).
+To install it press the reset button on your board *twice* to enter the boot loader mode on the board computer. You'll recongize this because a boot loader directory will appear on the screen of your host computer. Just frag the new uf2 into the boot loader directory and you will be good to go!
 
 *Code.py*     
 Python code for the sign
