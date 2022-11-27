@@ -23,8 +23,9 @@ import adafruit_display_text.label
 import adafruit_requests
 
 ## Couple of macro flags:
-dystopian_glitch = True #glitches time display 
-watchdog_flag = True    #watchdog timer for automatic reboot on fault
+dystopian_glitch = True  #glitches time display 
+watchdog_flag = True     #watchdog timer for automatic reboot on fault
+louis_and_leslie = False #Louis and Leslie" displays
 
 ##
 ## GRAB SECRETS AND ASSIGN VARIABLES
@@ -160,6 +161,8 @@ def init_l1():
     text_l1_3 = report_json['snow_report']
     text_l1_4 = report_json['season_total']
     text_l1_5 = " " ## currently a dummy placeholder for report_json['powday']
+    if louis_and_leslie:
+        text_l1_5 = "* Louis and Leslie *"
     return (text_l1_0, text_l1_1, text_l1_2, text_l1_3, text_l1_4, text_l1_5)
 
 
