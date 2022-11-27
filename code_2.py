@@ -22,6 +22,10 @@ from adafruit_bitmap_font import bitmap_font
 import adafruit_display_text.label
 import adafruit_requests
 
+## Couple of macro flags:
+dystopian_glitch = True #glitches time display 
+watchdog_flag = True    #watchdog timer for automatic reboot on fault
+
 ##
 ## GRAB SECRETS AND ASSIGN VARIABLES
 ##
@@ -155,9 +159,8 @@ def init_l1():
 
     text_l1_3 = report_json['snow_report']
     text_l1_4 = report_json['season_total']
-    text_l1_5 = "* Louis  &  Leslie *" ## currently a dummy placeholder for report_json['powday']
+    text_l1_5 = " " ## currently a dummy placeholder for report_json['powday']
     return (text_l1_0, text_l1_1, text_l1_2, text_l1_3, text_l1_4, text_l1_5)
-
 
 
 def init_l3():
@@ -170,9 +173,11 @@ def init_l3():
 
 
 ## Set up WatchDogMode
-w.timeout = 30 # seconds until watchdog timeout
-w.mode = WatchDogMode.RESET  # reset system upon timeout
-w.feed() #feed watchdog
+
+if watchdog_flag:
+    w.timeout =  10 # seconds until watchdog timeout
+    w.mode = WatchDogMode.RESET  # reset system upon timeout
+    w.feed() #feed watchdog
 
 
 ## initialize counters and timers
@@ -188,6 +193,12 @@ len_l1 = 1
 len_l2 = 1
 len_l3 = 1
 
+l1_x = -1000
+toggle_l1 = 0
+l3_x = -1000
+toggle_l3 = 0
+
+
 i = 1
 j = 1
 k = 1
@@ -197,101 +208,86 @@ first_pass = True
 
 rand_timer = int(time.time())%3 - 1   # random int between -1 and + 1
 
+## Set display colors
+#color_x = 0x979797
+#color_x_l1_blue = 0x9797B7
+#color_x_l1_red = 0xB79797
+#clock_color = 0x45B466
+#color_l3 = 0x3B56BF
+
+
+
 while True:
 
-    w.feed()  # feed watchdog
+    if watchdog_flag:
+        w.feed()  # feed watchdog
 
-    #reset rtc every 12 hours
-    if (int(time.time()) - big_time > 60*60* (12 + rand_timer) ) or first_pass :
+    #reset rtc every 12 +/- 1 hours
+    if (int(time.time()) - big_time > 60*60*(12 + rand_timer) ) or first_pass :
+        print("reset clock")
         j = 1
-        big_time = time.time()               # restart timer 
+        big_time = time.time()               # restart timer
         rand_timer = int(time.time())%3 - 1  # random int between -1 and + 1
 
         set_rtc()
 
     # reset l_1 (sensors and report) every 20 minutes
     if (int(time.time()) - l1_time > 60*(20 + rand_timer)) or first_pass :
+        print("reset sensors and report")
         i = 1
         l1_time = int(time.time())
         #text_l1_0, text_l1_1, text_l1_2, text_l1_3, text_l1_4, text_l1_5 = init_l1()
-        l1 = init_l1
+        l1 = init_l1()
+
+        print(l1)
+       
         n_l1 = len(l1)
-        len_l1 = max(tuple(len(itup) for itup in l1))
+        len_l1 = max(tuple(len(itup) for itup in l1))  # get max text length
 
     # reset l_3 (weather) every 90 minutes
     if (int(time.time()) - l3_time > 60*(60 + 5*rand_timer)) or first_pass:
+        print("reset weather")
         k = 1
         l3_time = int(time.time())
         l3 = init_l3()
+        
+        print(l3)
+        
         n_l3 = len(l3)
-        len_l3 = max(tuple(len(itup) for itup in l3))
-
-
-        #text_l3_0, text_l3_1, text_l3_2 = init_l3()
+        len_l3 = max(tuple(len(itup) for itup in l3))  # get max text length
 
     first_pass = False
-    
-    #n_l1 = 6  # this is a count of the number of lines above
-    #n_l3 = 3  # this is a count of the number of lines above
 
-    len_l1 = max(len(l1))
-    len_l3 = max(l3)
-    #len_l1 = max(len(text_l1_0), len(text_l1_1), len(text_l1_2), len(text_l1_3), len(text_l1_4), len(text_l1_5))
-    #len_l3 = max(len(text_l3_0), len(text_l3_1), len(text_l3_2))
     len_l2 = 5
 
     k_eff=1
-    start_time = time.time()
-    last_scroll = 0
-
 
     time_struct = time.localtime()
     hour = '{0:0>2}'.format(time_struct.tm_hour)
     int_hour = int(hour)
-    print("ww44ss")
+    #print("ww44ss")
 
-    ## Set display colors
-    color_x = 0x979797
-    color_x_l1_blue = 0x9797B7
-    color_x_l1_red = 0xB79797
-    clock_color = 0x45B466
-    color_l3 = 0x3B56BF
-
-    ## Nightime dimming
+    ## Nightime dimming between 9pm and 6am
     if int_hour > 21 or int_hour < 6:
         color_x = 0x100000
-        color_x_l1_blue = 0x100010
-        color_x_l1_red = 0x100000
+        #color_x_l1_blue = 0x100010
+        #color_x_l1_red = 0x100000
         clock_color = 0x101000
         color_l3 = 0x100000
+    else:
+        color_x = 0xA7A7A7
+        #color_x_l1_blue = 0x9797B7
+        #color_x_l1_red = 0xB79797
+        clock_color = 0x40B070
+        color_l3 = 0x3050C0
 
-
-
-    w.feed()  # feed Watchdog
-
+    #w.feed()  # feed Watchdog
 
     if l1_x < -4.5*(len_l1-2):
         i = 1
         toggle_l1 = (toggle_l1 + 1)%(n_l1)
 
     text_l1 = l1[toggle_l1]
-
-    # text_l1 = text_l1_0
-
-    # if toggle_l1 == 1:
-    #     text_l1 = text_l1_1
-
-    # if toggle_l1 == 2:
-    #     text_l1 = text_l1_2
-
-    # if toggle_l1 == 3:
-    #     text_l1 = text_l1_3
-
-    # if toggle_l1 == 4:
-    #     text_l1 = text_l1_4
-
-    # if toggle_l1 == 5:
-    #     text_l1 = text_l1_5
 
     l1_x = (-i*3.2)%(64+5*len_l1)-5*len_l1
 
@@ -307,77 +303,61 @@ while True:
     time_struct = time.localtime()
     time_now = '{0:0>2}'.format(time_struct.tm_hour)+ ':' + '{0:0>2}'.format(time_struct.tm_min)
 
-
-    #l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
-
     text_l2 = time_now
     color_2 = clock_color
 
-    ## Glitch Time Display
-    if (k+2*i+3*j)%312 == 0 or (k+2*j+3*i)%312 == 0:
-        line2.x = 9
-        line2.y = 12
-        color_2 = color_2 + 0x000020
-               
-    if (i+j+k)%126 == 6:
-        line2.x = 10
-        line2.y = 12
-        color_2 = color_2 + 0x100020
+    line2_x = 10
+    line2_y = 14
+   
+    if dystopian_glitch: 
+    
+        ## Glitch Time Display for dystopian effect
+        ## the more of these lines the less smooth the display appears
+        
+        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 6:
+            line2_x = 10-i%5+2
+            line2_y = 13 - k%3
+            color_2 = 0x002000
 
-    if (2*k+i+3*j)%363 == 6:
-        line2.y = 15
-        line2.x = 13
-        color_2 = color_2 + 0x002000
+        if (i+j+k)%126 == 6:
+            line2_x = 10 + i%2
+            line2_y = 14
+            color_2 = color_2 + 0x101010
 
-    if (k+2*i+2*j)%312 == 6:
-        line2.x = 11
-        line2.y = 15
-        color_2 = 0x001000
+        if (2*k+i+3*j)%363 == 6:
+            line2_y = 15
+            line2_x = 15
+            color_2 = 0x202000
 
-    if (k+2*i+2*j)%363 == 14:
-        line2.x = 10
-        line2.y = 14
-        color_2 = 0x000010
+        #if (k+2*i+2*j)%312 == 6:
+        #    line2_x = 11
+        #    line2_y = 15
+        #    color_2 = 0x003000
 
+        #if (k+2*i+2*j)%363 == 14:
+        #    line2_x = 10
+        #    line2_y = 8
+        #    color_2 = 0x001010
+        
     line2 = adafruit_display_text.label.Label(
-        LARGE_FONT,
-        color=color_2,
-        text=text_l2)
-    line2.x = 10
-    line2.y = 14
-
+    LARGE_FONT,
+    color=color_2,
+    text=text_l2)
+    line2.x= line2_x
+    line2.y= line2_y
 
     ## TEXT 3
 
-    if l3_x < -4*(len_l3-3):
+    if l3_x < -4*(len_l3):
         j = 1
-        toggle_l3 = (toggle_l3 + 1)%n_l3 
+        toggle_l3 = (toggle_l3 + 1)%n_l3
 
-    text_l2 = l3[toggle_l3]
-
-    # text_l3 = text_l3_0
-
-    # if toggle_l3 == 1:
-    #     text_l3 = text_l3_1
-
-    # if toggle_l3 == 2:
-    #     text_l3 = text_l3_2
-
-    # if toggle_l3 == 3:
-    #     text_l3 = "     "
+    text_l3 = l3[toggle_l3]
 
     l3_x = (-j*2)%(64+5*len_l3)-5*len_l3
 
     color3 = color_l3
 
-            # glitch
-    if (k+i+3*j)%218 == 0:
-        line3.x = int(l3_x+2)
-        line3.y = 2
-        color3 = color_l3 + 0X000030
-
-    gc.collect()
-    
     line3 = adafruit_display_text.label.Label(
         FONT,
         color = color3,
