@@ -25,7 +25,7 @@ import adafruit_requests
 ## Couple of macro flags:
 dystopian_glitch = True  #glitches time display
 watchdog_flag = True     #watchdog timer for automatic reboot on fault
-louis_and_leslie = False #Louis and Leslie" displays
+louis_and_leslie = False #"*Louis and Leslie*" displays
 
 ##
 ## GRAB SECRETS AND ASSIGN VARIABLES
