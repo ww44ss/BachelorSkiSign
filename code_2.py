@@ -23,7 +23,7 @@ import adafruit_display_text.label
 import adafruit_requests
 
 ## Couple of macro flags:
-dystopian_glitch = True  #glitches time display 
+dystopian_glitch = True  #glitches time display
 watchdog_flag = True     #watchdog timer for automatic reboot on fault
 louis_and_leslie = False #Louis and Leslie" displays
 
@@ -112,7 +112,7 @@ def sensors():
 
 def weather():
     url="https://bachelorapi.azurewebsites.net/weather2023"
-    #print(url)
+    print(url)
     retry = True
     cycle = 1
 
@@ -133,8 +133,7 @@ def weather():
 
 def report():
     url="https://bachelorapi.azurewebsites.net/report2023"
-    print("report: ",time.time())
-    #print(url)
+    print(url)
     retry = True
     cycle = 1
 
@@ -206,19 +205,9 @@ i = 1
 j = 1
 k = 1
 
-set_rtc()
 first_pass = True
 
 rand_timer = int(time.time())%3 - 1   # random int between -1 and + 1
-
-## Set display colors
-#color_x = 0x979797
-#color_x_l1_blue = 0x9797B7
-#color_x_l1_red = 0xB79797
-#clock_color = 0x45B466
-#color_l3 = 0x3B56BF
-
-
 
 while True:
 
@@ -227,35 +216,38 @@ while True:
 
     #reset rtc every 12 +/- 1 hours
     if (int(time.time()) - big_time > 60*60*(12 + rand_timer) ) or first_pass :
-        print("reset clock")
+        print("reset clock: ", time.localtime())
         j = 1
         big_time = time.time()               # restart timer
         rand_timer = int(time.time())%3 - 1  # random int between -1 and + 1
 
         set_rtc()
+        
+    if watchdog_flag:
+        w.feed()  # feed watchdog
 
     # reset l_1 (sensors and report) every 20 minutes
     if (int(time.time()) - l1_time > 60*(20 + rand_timer)) or first_pass :
-        print("reset sensors and report")
+        print("reset sensors and report: ", time.localtime())
         i = 1
         l1_time = int(time.time())
         #text_l1_0, text_l1_1, text_l1_2, text_l1_3, text_l1_4, text_l1_5 = init_l1()
         l1 = init_l1()
 
         print(l1)
-       
+
         n_l1 = len(l1)
         len_l1 = max(tuple(len(itup) for itup in l1))  # get max text length
 
-    # reset l_3 (weather) every 90 minutes
+    # reset l_3 (weather) every 60+/- 5 minutes
     if (int(time.time()) - l3_time > 60*(60 + 5*rand_timer)) or first_pass:
-        print("reset weather")
+        print("reset weather: ", time.localtime())
         k = 1
         l3_time = int(time.time())
         l3 = init_l3()
-        
+
         print(l3)
-        
+
         n_l3 = len(l3)
         len_l3 = max(tuple(len(itup) for itup in l3))  # get max text length
 
@@ -281,7 +273,7 @@ while True:
         color_x = 0xA7A7A7
         #color_x_l1_blue = 0x9797B7
         #color_x_l1_red = 0xB79797
-        clock_color = 0x40B070
+        clock_color = 0x20C070
         color_l3 = 0x3050C0
 
     #w.feed()  # feed Watchdog
@@ -311,12 +303,12 @@ while True:
 
     line2_x = 10
     line2_y = 14
-   
-    if dystopian_glitch: 
-    
+
+    if dystopian_glitch:
+
         ## Glitch Time Display for dystopian effect
         ## the more of these lines the less smooth the display appears
-        
+
         if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 6:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
@@ -341,7 +333,7 @@ while True:
         #    line2_x = 10
         #    line2_y = 8
         #    color_2 = 0x001010
-        
+
     line2 = adafruit_display_text.label.Label(
     LARGE_FONT,
     color=color_2,
