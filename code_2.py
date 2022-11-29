@@ -105,7 +105,7 @@ def sensors():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            print("Sensor error")
+            print("Sensor retry", cycle)
             text = {"cycle":cycle,  "temp": "X", "wind": "X" , "base": "X", "epic_day": False, "epic_pow": False, "frost_day": False,"rough_day": False }
             retry = True
             cycle += 1
@@ -124,10 +124,11 @@ def weather():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            print('Report Error')
+            print('weather retry ', cycle)
             cycle += 1
             retry = True
             time.sleep(2)
+            print("weather retry ", cycle)
             text = {"cycle": 5, "weather1": "W", "weather2": "A", "weather3": "S", "epic_day, ": False, "epic_pow": False, "frost_day": False,"rough_day": False  }
 
     #print("/weather ", text)
@@ -148,6 +149,7 @@ def report():
             cycle += 1
             text = {"snow_report": "think ...", "season_total": "... snow", "epic_day, ": False, "epic_pow": False, "frost_day": False,"rough_day": False }
             retry = True
+            print("report retry ", cycle)
             time.sleep(2)
     return text
 
@@ -166,6 +168,7 @@ def conditions_text():
             cycle += 1
             text = {"epic": " x ", "pow": " x ", "frost": "x", "rough": "x"}
             retry = True
+            print("conditions retry ", cycle)
             time.sleep(2)
     return text
 
@@ -175,42 +178,44 @@ def conditions():
     sensors_x = sensors()
     weather_x = weather()
     cond_text = conditions_text()
-    
+
     print(report_x)
     print(sensors_x)
     print(weather_x)
 
-    conditions = " "
+    conditions = "... shred it!    "
 
     if report_x['epic_day'] and sensors_x['epic_day'] and weather_x['epic_day']:
         conditions = " epic day "
         conditions = cond_text['epic']
-    
+
     if report_x['epic_pow'] and sensors_x['epic_pow'] and weather_x['epic_pow']:
-        conditions = " get shredding! "
         conditions = cond_text['pow']
-    
+
     if report_x['frost_day'] and sensors_x['frost_day'] and weather_x['frost_day']:
-        conditions = " groomers for boomers "
         conditions = cond_text['frost']
 
     if report_x['rough_day'] and sensors_x['rough_day'] and weather_x['rough_day']:
-        conditions = " always a good day "
         conditions = cond_text['rough']
-        
+
     time_struct = time.localtime()
     hour = '{0:0>2}'.format(time_struct.tm_hour)
     int_hour = int(hour)
 
-    ## Show conditions only between 7 and 11 am
-    if int_hour < 7 or int_hour > 11:
-        conditions = " "
-        
+    print("conditions logic ", conditions)
+    
+    if louis_and_leslie:
+        conditions = "* Louis and Leslie *"
 
-    print("conditions = ",conditions)
+    ## Show conditions only between 7 and 11 am
+    if int_hour < 7 or int_hour > 10:
+        conditions = " "
     
-    
-    
+
+    print("screened conditions = ",conditions)
+
+
+
     return (conditions)
 
 
@@ -227,8 +232,7 @@ def init_l1():
     text_l1_3 = report_json['snow_report']
     text_l1_4 = report_json['season_total']
     text_l1_5 = " " ## currently a dummy placeholder for report_json['powday']
-    if louis_and_leslie:
-        text_l1_5 = "* Louis and Leslie *"
+    
     if condition_flag:
         text_l1_5 = conditions()
 
@@ -247,7 +251,7 @@ def init_l3():
 ## Set up WatchDogMode
 
 if watchdog_flag:
-    w.timeout =  10 # seconds until watchdog timeout
+    w.timeout =  14 # seconds until watchdog timeout
     w.mode = WatchDogMode.RESET  # reset system upon timeout
     w.feed() #feed watchdog
 
@@ -280,6 +284,9 @@ rand_timer = int(time.time())%3 - 1   # random int between -1 and + 1
 
 while True:
 
+
+    #time.sleep(15)
+
     if watchdog_flag:
         w.feed()  # feed watchdog
 
@@ -291,9 +298,7 @@ while True:
         rand_timer = int(time.time())%3 - 1  # random int between -1 and + 1
 
         set_rtc()
-        
-    if watchdog_flag:
-        w.feed()  # feed watchdog
+
 
     # reset l_1 (sensors and report) every 45+/-5 minutes
     if (int(time.time()) - l1_time > 60*(45 + 5*rand_timer)) or first_pass :
@@ -302,6 +307,9 @@ while True:
         l1_time = int(time.time())
         #text_l1_0, text_l1_1, text_l1_2, text_l1_3, text_l1_4, text_l1_5 = init_l1()
         l1 = init_l1()
+
+        if watchdog_flag:
+            w.feed()  # feed watchdog
 
         print(l1)
 
@@ -314,6 +322,9 @@ while True:
         k = 1
         l3_time = int(time.time())
         l3 = init_l3()
+
+        #if watchdog_flag:
+        #  w.feed()  # feed watchdog
 
         print(l3)
 
