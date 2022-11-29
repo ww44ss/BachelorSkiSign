@@ -26,6 +26,7 @@ import adafruit_requests
 dystopian_glitch = True  #glitches time display
 watchdog_flag = True     #watchdog timer for automatic reboot on fault
 louis_and_leslie = False #"*Louis and Leslie*" displays
+condition_flag = True              # adds some conditoions comments
 
 ##
 ## GRAB SECRETS AND ASSIGN VARIABLES
@@ -125,7 +126,7 @@ def weather():
             cycle += 1
             retry = True
             time.sleep(2)
-            text = {"cycle": cycle,"weather1":"unavail","weather2":"unavail","weather3":"Pray for *Snow*"}
+            text = {"cycle": 5, "weather1": "W", "weather2": "A", "weather3": "S", "epic_day, ": False, "epic_pow": False, "frost_day": False,"rough_day": False  }
 
     #print("/weather ", text)
     print("url", url, "  API_cycle = ",text['cycle'], "web_cycle = ", cycle)
@@ -143,10 +144,36 @@ def report():
             retry = False
         except:
             cycle += 1
-            text = {"season_total": "unavail", "snow_report":"*Pray for Snow*"}
+            text = {"snow_report": "think ...", "season_total": "... snow", "epic_day, ": False, "epic_pow": False, "frost_day": False,"rough_day": False }
             retry = True
             time.sleep(2)
     return text
+
+
+def conditions():
+
+    report = report()
+    sensors = sensors()
+    weather = weather()
+
+    conditions = " "
+
+    if report['epic_day'] and sensors['epic_day'] and weather['epic_day']:
+        conditions = " great day on the hill "
+    
+    if report['epic_pow'] and sensors['epic_pow'] and weather['epic_pow']:
+        conditions = " ready to rip "
+    
+    if report['frost_day'] and sensors['frost_day'] and weather['frost_day']:
+        conditions = " sharp edges "
+
+    if report['rough_day'] and sensors['rough_day'] and weather['rough_day']:
+        conditions = " weather smiles on the prepared "
+
+
+    return (conditions)
+
+
 
 def init_l1():
     report_json = report()
@@ -162,6 +189,9 @@ def init_l1():
     text_l1_5 = " " ## currently a dummy placeholder for report_json['powday']
     if louis_and_leslie:
         text_l1_5 = "* Louis and Leslie *"
+    if condition_flag:
+        text_l1_5 = conditions()
+
     return (text_l1_0, text_l1_1, text_l1_2, text_l1_3, text_l1_4, text_l1_5)
 
 
@@ -188,8 +218,7 @@ set_rtc()
 big_time = int(time.time())
 l1_time = big_time
 l3_time = big_time
-
-
+conditions_time = big_time
 
 len_l1 = 1
 len_l2 = 1
@@ -226,8 +255,8 @@ while True:
     if watchdog_flag:
         w.feed()  # feed watchdog
 
-    # reset l_1 (sensors and report) every 20 minutes
-    if (int(time.time()) - l1_time > 60*(20 + rand_timer)) or first_pass :
+    # reset l_1 (sensors and report) every 45+/-5 minutes
+    if (int(time.time()) - l1_time > 60*(45 + 5*rand_timer)) or first_pass :
         print("reset sensors and report: ", time.localtime())
         i = 1
         l1_time = int(time.time())
@@ -250,6 +279,7 @@ while True:
 
         n_l3 = len(l3)
         len_l3 = max(tuple(len(itup) for itup in l3))  # get max text length
+
 
     first_pass = False
 
