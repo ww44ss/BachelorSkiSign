@@ -7,6 +7,8 @@
 ##              - Reflect TZ uifo Pacific Time zone
 ##              - text computed on web
 ## 2022 Nov 26: major rewrite
+##              - streamlined loops
+##              - added conditions functionality
 
 
 ## IMPORT LIBRARIES
@@ -104,7 +106,7 @@ def sensors():
             retry = False
         except:
             print("Sensor error")
-            text = {"base": "0 m base","temp":"Temperature 5 C","wind":"winds 24 to 34 kph"}
+            text = {"cycle":cycle,  "temp": "X", "wind": "X" , "base": "X", "epic_day": False, "epic_pow": False, "frost_day": False,"rough_day": False }
             retry = True
             cycle += 1
             time.sleep(2)
@@ -150,27 +152,65 @@ def report():
     return text
 
 
+def conditions_text():
+    url="https://bachelorapi.azurewebsites.net/conditions2023"
+    print(url)
+    retry = True
+    cycle = 1
+
+    while (retry == True and cycle <5):
+        try:
+            text = json.loads(NETWORK.fetch_data(url))
+            retry = False
+        except:
+            cycle += 1
+            text = {"epic": " x ", "pow": " x ", "frost": "x", "rough": "x"}
+            retry = True
+            time.sleep(2)
+    return text
+
 def conditions():
 
-    report = report()
-    sensors = sensors()
-    weather = weather()
+    report_x = report()
+    sensors_x = sensors()
+    weather_x = weather()
+    cond_text = conditions_text()
+    
+    print(report_x)
+    print(sensors_x)
+    print(weather_x)
 
     conditions = " "
 
-    if report['epic_day'] and sensors['epic_day'] and weather['epic_day']:
-        conditions = " great day on the hill "
+    if report_x['epic_day'] and sensors_x['epic_day'] and weather_x['epic_day']:
+        conditions = " epic day "
+        conditions = cond_text['epic']
     
-    if report['epic_pow'] and sensors['epic_pow'] and weather['epic_pow']:
-        conditions = " ready to rip "
+    if report_x['epic_pow'] and sensors_x['epic_pow'] and weather_x['epic_pow']:
+        conditions = " get shredding! "
+        conditions = cond_text['pow']
     
-    if report['frost_day'] and sensors['frost_day'] and weather['frost_day']:
-        conditions = " sharp edges "
+    if report_x['frost_day'] and sensors_x['frost_day'] and weather_x['frost_day']:
+        conditions = " groomers for boomers "
+        conditions = cond_text['frost']
 
-    if report['rough_day'] and sensors['rough_day'] and weather['rough_day']:
-        conditions = " weather smiles on the prepared "
+    if report_x['rough_day'] and sensors_x['rough_day'] and weather_x['rough_day']:
+        conditions = " always a good day "
+        conditions = cond_text['rough']
+        
+    time_struct = time.localtime()
+    hour = '{0:0>2}'.format(time_struct.tm_hour)
+    int_hour = int(hour)
 
+    ## Show conditions only between 7 and 11 am
+    if int_hour < 7 or int_hour > 11:
+        conditions = " "
+        
 
+    print("conditions = ",conditions)
+    
+    
+    
     return (conditions)
 
 
