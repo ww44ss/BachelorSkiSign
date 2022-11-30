@@ -50,6 +50,9 @@ except:
     print('Using DEFAULT geolocation: ', LATITUDE, LONGITUDE)
 
 ### Initialize Display
+# has four bit planes avail in mem
+# I want to make layer 4 show a picture. 
+# need to figure that out. 
 
 BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
@@ -63,10 +66,22 @@ DISPLAY.rotation = 0
 
 ### Connect to Network
 
+
 NETWORK = Network(status_neopixel=board.NEOPIXEL, debug=False)
 NETWORK.connect()
 
+### make a joke
+print("  M5")
+time.sleep(.8)
+print(" * ")
+time.sleep(0.3)
+print(" ***")
+time.sleep(0.1)
+print("ww44ss")
+time.sleep(1.2)
+
 ### Define functions
+
 
 def set_rtc():
     url = "https://bachelorapi.azurewebsites.net/time"
@@ -80,18 +95,19 @@ def set_rtc():
         except:
             fetched_data = '{"time":"2022-02-10T17:00"}'  # Dummy Data
             cycle += 1
-            time.sleep(1)
+            print("t_retry", cycle)
+            time.sleep(4)
 
     time_date = fetched_data['pacific_time']
-    print(time_date)
+    #print(time_date)
     y_m_d_h_m_s = time_date.split('T')[0].split('-')+ time_date.split('T')[1].split('-')[0].split(':')
 
     y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['30', 0, '-1','-1']]
     y_m_d_h_m_s = tuple(y_m_d_h_m_s)
-    print("RTC = ", y_m_d_h_m_s)
+    #print("RTC = ", y_m_d_h_m_s)
     ## set RTC
     RTC().datetime = time.struct_time(y_m_d_h_m_s)
-    print("url", url, "  cycle = ",cycle)
+    #print("url", url, "  cycle = ",cycle)
     return
 
 def sensors():
@@ -105,7 +121,7 @@ def sensors():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            print("Sensor retry", cycle)
+            print("s_retry", cycle)
             text = {"cycle":cycle,  "temp": "X", "wind": "X" , "base": "X", "epic_day": False, "epic_pow": False, "frost_day": False,"rough_day": False }
             retry = True
             cycle += 1
@@ -115,7 +131,6 @@ def sensors():
 
 def weather():
     url="https://bachelorapi.azurewebsites.net/weather2023"
-    print(url)
     retry = True
     cycle = 1
 
@@ -124,20 +139,16 @@ def weather():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            print('weather retry ', cycle)
             cycle += 1
             retry = True
-            time.sleep(2)
-            print("weather retry ", cycle)
+            print("w_retry", cycle)
+            time.sleep(4)
             text = {"cycle": 5, "weather1": "W", "weather2": "A", "weather3": "S", "epic_day, ": False, "epic_pow": False, "frost_day": False,"rough_day": False  }
 
-    #print("/weather ", text)
-    print("url", url, "  API_cycle = ",text['cycle'], "web_cycle = ", cycle)
     return text
 
 def report():
     url="https://bachelorapi.azurewebsites.net/report2023"
-    print(url)
     retry = True
     cycle = 1
 
@@ -149,14 +160,14 @@ def report():
             cycle += 1
             text = {"snow_report": "think ...", "season_total": "... snow", "epic_day, ": False, "epic_pow": False, "frost_day": False,"rough_day": False }
             retry = True
-            print("report retry ", cycle)
+            print("r_retry", cycle)
             time.sleep(2)
     return text
 
 
 def conditions_text():
     url="https://bachelorapi.azurewebsites.net/conditions2023"
-    print(url)
+    #print(url)
     retry = True
     cycle = 1
 
@@ -168,8 +179,9 @@ def conditions_text():
             cycle += 1
             text = {"epic": " x ", "pow": " x ", "frost": "x", "rough": "x"}
             retry = True
-            print("conditions retry ", cycle)
+            print("c_retry", cycle)
             time.sleep(2)
+            
     return text
 
 def conditions():
@@ -178,12 +190,10 @@ def conditions():
     sensors_x = sensors()
     weather_x = weather()
     cond_text = conditions_text()
+    if watchdog_flag:
+        w.feed()
 
-    print(report_x)
-    print(sensors_x)
-    print(weather_x)
-
-    conditions = "... shred it!    "
+    conditions = " always a good day on the mountain"
 
     if report_x['epic_day'] and sensors_x['epic_day'] and weather_x['epic_day']:
         conditions = " epic day "
@@ -202,7 +212,7 @@ def conditions():
     hour = '{0:0>2}'.format(time_struct.tm_hour)
     int_hour = int(hour)
 
-    print("conditions logic ", conditions)
+    #print("conditions logic ", conditions)
     
     if louis_and_leslie:
         conditions = "* Louis and Leslie *"
@@ -211,18 +221,14 @@ def conditions():
     if int_hour < 7 or int_hour > 10:
         conditions = " "
     
-
-    print("screened conditions = ",conditions)
-
-
-
     return (conditions)
-
-
 
 def init_l1():
     report_json = report()
     sensors_json = sensors()
+    
+    if watchdog_flag:
+        w.feed()
 
 
     text_l1_0 = sensors_json["temp"]
@@ -241,6 +247,8 @@ def init_l1():
 
 def init_l3():
     weather_text = weather()
+    if watchdog_flag: 
+        w.feed()
     text_l3_0 = weather_text['weather1']
     text_l3_1 = weather_text['weather2']
     text_l3_2 = weather_text['weather3']
@@ -259,6 +267,7 @@ if watchdog_flag:
 ## initialize counters and timers
 
 set_rtc()
+## initialize reference times for reset cycles
 big_time = int(time.time())
 l1_time = big_time
 l3_time = big_time
@@ -280,19 +289,15 @@ k = 1
 
 first_pass = True
 
-rand_timer = int(time.time())%3 - 1   # random int between -1 and + 1
+rand_timer = int(time.time())%5 - 2   # random int between -2 and + 2
 
 while True:
-
-
-    #time.sleep(15)
 
     if watchdog_flag:
         w.feed()  # feed watchdog
 
     #reset rtc every 12 +/- 1 hours
     if (int(time.time()) - big_time > 60*60*(12 + rand_timer) ) or first_pass :
-        print("reset clock: ", time.localtime())
         j = 1
         big_time = time.time()               # restart timer
         rand_timer = int(time.time())%3 - 1  # random int between -1 and + 1
@@ -305,32 +310,25 @@ while True:
         print("reset sensors and report: ", time.localtime())
         i = 1
         l1_time = int(time.time())
-        #text_l1_0, text_l1_1, text_l1_2, text_l1_3, text_l1_4, text_l1_5 = init_l1()
         l1 = init_l1()
 
         if watchdog_flag:
             w.feed()  # feed watchdog
-
-        print(l1)
 
         n_l1 = len(l1)
         len_l1 = max(tuple(len(itup) for itup in l1))  # get max text length
 
     # reset l_3 (weather) every 60+/- 5 minutes
     if (int(time.time()) - l3_time > 60*(60 + 5*rand_timer)) or first_pass:
-        print("reset weather: ", time.localtime())
         k = 1
         l3_time = int(time.time())
         l3 = init_l3()
-
-        #if watchdog_flag:
-        #  w.feed()  # feed watchdog
-
-        print(l3)
+        
+        if watchdog_flag:
+            w.feed()
 
         n_l3 = len(l3)
         len_l3 = max(tuple(len(itup) for itup in l3))  # get max text length
-
 
     first_pass = False
 
@@ -341,23 +339,16 @@ while True:
     time_struct = time.localtime()
     hour = '{0:0>2}'.format(time_struct.tm_hour)
     int_hour = int(hour)
-    #print("ww44ss")
 
     ## Nightime dimming between 9pm and 6am
     if int_hour > 21 or int_hour < 6:
         color_x = 0x100000
-        #color_x_l1_blue = 0x100010
-        #color_x_l1_red = 0x100000
         clock_color = 0x101000
         color_l3 = 0x100000
     else:
         color_x = 0xA7A7A7
-        #color_x_l1_blue = 0x9797B7
-        #color_x_l1_red = 0xB79797
-        clock_color = 0x20C070
+        clock_color = 0x408270
         color_l3 = 0x3050C0
-
-    #w.feed()  # feed Watchdog
 
     if l1_x < -4.5*(len_l1-2):
         i = 1
@@ -375,7 +366,8 @@ while True:
     line1.x = int(l1_x)
     line1.y = 26
 
-    ##TEXT 2
+    ## LINE 2 (CLOCK)
+
     time_struct = time.localtime()
     time_now = '{0:0>2}'.format(time_struct.tm_hour)+ ':' + '{0:0>2}'.format(time_struct.tm_min)
 
@@ -390,7 +382,7 @@ while True:
         ## Glitch Time Display for dystopian effect
         ## the more of these lines the less smooth the display appears
 
-        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 6:
+        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 6 or (k+2*i+3*j)%312 == 18:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
             color_2 = 0x002000
@@ -422,7 +414,7 @@ while True:
     line2.x= line2_x
     line2.y= line2_y
 
-    ## TEXT 3
+    ## LINE 3 (Weather Report)
 
     if l3_x < -4*(len_l3):
         j = 1
@@ -448,12 +440,16 @@ while True:
 
 
     DISPLAY.show(g)
-            # clean up memory and pause
+    
+    # pause
     time.sleep(.05)
-            # scroll counters
+
+    # scroll counters
     k += 1
     j += 1
     i += 1
+
+    # clean up memory
     gc.collect()
 
     pass
