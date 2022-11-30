@@ -6,6 +6,9 @@
 ## 2022 Nov 16: updated for 2023
 ##              - Reflect TZ uifo Pacific Time zone
 ##              - text computed on web
+## 2022 Nov 26: major rewrite
+##              - streamlined loops
+##              - added conditions functionality
 
 
 ## IMPORT LIBRARIES
@@ -20,6 +23,12 @@ from adafruit_matrixportal.matrix import Matrix
 from adafruit_bitmap_font import bitmap_font
 import adafruit_display_text.label
 import adafruit_requests
+
+## Couple of macro flags:
+dystopian_glitch = True  #glitches time display
+watchdog_flag = True     #watchdog timer for automatic reboot on fault
+louis_and_leslie = False #"*Louis and Leslie*" displays
+condition_flag = True              # adds some conditoions comments
 
 ##
 ## GRAB SECRETS AND ASSIGN VARIABLES
@@ -41,6 +50,9 @@ except:
     print('Using DEFAULT geolocation: ', LATITUDE, LONGITUDE)
 
 ### Initialize Display
+# has four bit planes avail in mem
+# I want to make layer 4 show a picture. 
+# need to figure that out. 
 
 BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
@@ -52,13 +64,27 @@ LARGE_FONT = bitmap_font.load_font('/fonts/helvB14.bdf') #need to update font li
 
 DISPLAY.rotation = 0
 
+### Connect to Network
+
+
 NETWORK = Network(status_neopixel=board.NEOPIXEL, debug=False)
 NETWORK.connect()
+
+### make a joke
+print("  M5")
+time.sleep(.8)
+print(" * ")
+time.sleep(0.3)
+print(" ***")
+time.sleep(0.1)
+print("ww44ss")
+time.sleep(1.2)
+
+### Define functions
 
 
 def set_rtc():
     url = "https://bachelorapi.azurewebsites.net/time"
-    print(url)
     retry = True
     cycle = 1
 
@@ -69,23 +95,24 @@ def set_rtc():
         except:
             fetched_data = '{"time":"2022-02-10T17:00"}'  # Dummy Data
             cycle += 1
-            time.sleep(1)
+            print("t_retry", cycle)
+            time.sleep(4)
 
     time_date = fetched_data['pacific_time']
-    print(time_date)
+    #print(time_date)
     y_m_d_h_m_s = time_date.split('T')[0].split('-')+ time_date.split('T')[1].split('-')[0].split(':')
 
-    y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['45', 0, '-1','-1']]
+    y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['30', 0, '-1','-1']]
     y_m_d_h_m_s = tuple(y_m_d_h_m_s)
-    print("RTC = ", y_m_d_h_m_s)
+    #print("RTC = ", y_m_d_h_m_s)
     ## set RTC
     RTC().datetime = time.struct_time(y_m_d_h_m_s)
-    print("url", url, "  cycle = ",cycle)
+    #print("url", url, "  cycle = ",cycle)
     return
 
 def sensors():
     url="https://bachelorapi.azurewebsites.net/sensors2023"
-    #print(url)
+
     retry = True
     cycle = 1
 
@@ -94,8 +121,8 @@ def sensors():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            print("Sensor error")
-            text = {"base": "0 m base","temp":"Temperature 5 C","wind":"winds 24 to 34 kph"}
+            print("s_retry", cycle)
+            text = {"cycle":cycle,  "temp": "X", "wind": "X" , "base": "X", "epic_day": False, "epic_pow": False, "frost_day": False,"rough_day": False }
             retry = True
             cycle += 1
             time.sleep(2)
@@ -104,6 +131,42 @@ def sensors():
 
 def weather():
     url="https://bachelorapi.azurewebsites.net/weather2023"
+    retry = True
+    cycle = 1
+
+    while (retry == True and cycle <5):
+        try:
+            text = json.loads(NETWORK.fetch_data(url))
+            retry = False
+        except:
+            cycle += 1
+            retry = True
+            print("w_retry", cycle)
+            time.sleep(4)
+            text = {"cycle": 5, "weather1": "W", "weather2": "A", "weather3": "S", "epic_day, ": False, "epic_pow": False, "frost_day": False,"rough_day": False  }
+
+    return text
+
+def report():
+    url="https://bachelorapi.azurewebsites.net/report2023"
+    retry = True
+    cycle = 1
+
+    while (retry == True and cycle <5):
+        try:
+            text = json.loads(NETWORK.fetch_data(url))
+            retry = False
+        except:
+            cycle += 1
+            text = {"snow_report": "think ...", "season_total": "... snow", "epic_day, ": False, "epic_pow": False, "frost_day": False,"rough_day": False }
+            retry = True
+            print("r_retry", cycle)
+            time.sleep(2)
+    return text
+
+
+def conditions_text():
+    url="https://bachelorapi.azurewebsites.net/conditions2023"
     #print(url)
     retry = True
     cycle = 1
@@ -113,285 +176,280 @@ def weather():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            print('Report Error')
             cycle += 1
+            text = {"epic": " x ", "pow": " x ", "frost": "x", "rough": "x"}
             retry = True
+            print("c_retry", cycle)
             time.sleep(2)
-            text = {"cycle": cycle,"weather1":"unavail","weather2":"unavail","weather3":"Pray for *Snow*"}
-
-    #print("/weather ", text)
-    print("url", url, "  API_cycle = ",text['cycle'], "web_cycle = ", cycle)
+            
     return text
 
-def report():
-    url="https://bachelorapi.azurewebsites.net/report2023"
-    print("report: ",time.time())
-    #print(url)
-    retry = True
-    cycle = 1
+def conditions():
 
-    while (retry == True or cycle >5):
-        try:
-            text = json.loads(NETWORK.fetch_data(url))
-            retry = False
-        except:
-            cycle += 1
-            text = {"season_total": "unavail", "snow_report":"*Pray for Snow*"}
-            retry = True
-            time.sleep(2)
-    return text
+    report_x = report()
+    sensors_x = sensors()
+    weather_x = weather()
+    cond_text = conditions_text()
+    if watchdog_flag:
+        w.feed()
+
+    conditions = " always a good day on the mountain"
+
+    if report_x['epic_day'] and sensors_x['epic_day'] and weather_x['epic_day']:
+        conditions = " epic day "
+        conditions = cond_text['epic']
+
+    if report_x['epic_pow'] and sensors_x['epic_pow'] and weather_x['epic_pow']:
+        conditions = cond_text['pow']
+
+    if report_x['frost_day'] and sensors_x['frost_day'] and weather_x['frost_day']:
+        conditions = cond_text['frost']
+
+    if report_x['rough_day'] and sensors_x['rough_day'] and weather_x['rough_day']:
+        conditions = cond_text['rough']
+
+    time_struct = time.localtime()
+    hour = '{0:0>2}'.format(time_struct.tm_hour)
+    int_hour = int(hour)
+
+    #print("conditions logic ", conditions)
+    
+    if louis_and_leslie:
+        conditions = "* Louis and Leslie *"
+
+    ## Show conditions only between 7 and 11 am
+    if int_hour < 7 or int_hour > 10:
+        conditions = " "
+    
+    return (conditions)
+
+def init_l1():
+    report_json = report()
+    sensors_json = sensors()
+    
+    if watchdog_flag:
+        w.feed()
+
+
+    text_l1_0 = sensors_json["temp"]
+    text_l1_1 = sensors_json["wind"]
+    text_l1_2 = sensors_json["base"]
+
+    text_l1_3 = report_json['snow_report']
+    text_l1_4 = report_json['season_total']
+    text_l1_5 = " " ## currently a dummy placeholder for report_json['powday']
+    
+    if condition_flag:
+        text_l1_5 = conditions()
+
+    return (text_l1_0, text_l1_1, text_l1_2, text_l1_3, text_l1_4, text_l1_5)
+
+
+def init_l3():
+    weather_text = weather()
+    if watchdog_flag: 
+        w.feed()
+    text_l3_0 = weather_text['weather1']
+    text_l3_1 = weather_text['weather2']
+    text_l3_2 = weather_text['weather3']
+
+    return(text_l3_0,text_l3_1, text_l3_2)
 
 
 ## Set up WatchDogMode
-w.timeout = 16 # seconds until watchdog timeout
-w.mode = WatchDogMode.RESET  # reset system upon timeout
-w.feed() #feed watchdog
+
+if watchdog_flag:
+    w.timeout =  14 # seconds until watchdog timeout
+    w.mode = WatchDogMode.RESET  # reset system upon timeout
+    w.feed() #feed watchdog
+
+
+## initialize counters and timers
+
+set_rtc()
+## initialize reference times for reset cycles
+big_time = int(time.time())
+l1_time = big_time
+l3_time = big_time
+conditions_time = big_time
+
+len_l1 = 1
+len_l2 = 1
+len_l3 = 1
+
+l1_x = -1000
+toggle_l1 = 0
+l3_x = -1000
+toggle_l3 = 0
+
+
+i = 1
+j = 1
+k = 1
+
+first_pass = True
+
+rand_timer = int(time.time())%5 - 2   # random int between -2 and + 2
 
 while True:
 
-    ## big loop checks weather, sun, report every ~2.8 hours
-    big_time = time.time()
+    if watchdog_flag:
+        w.feed()  # feed watchdog
 
-    set_rtc()
+    #reset rtc every 12 +/- 1 hours
+    if (int(time.time()) - big_time > 60*60*(12 + rand_timer) ) or first_pass :
+        j = 1
+        big_time = time.time()               # restart timer
+        rand_timer = int(time.time())%3 - 1  # random int between -1 and + 1
 
-    mem_last = 0
-   
-    ## loop 1 initialize
+        set_rtc()
 
-    l1_x = "0"
-    l2_x = "0"
-    l3_x = "0"
-    len_l1 = 1
-    len_l2 = 1
-    len_l3 = 1
-    i = 1
-    l1_x = -1000
-   
-    ## loop 2 initialize
 
-    k = 1
+    # reset l_1 (sensors and report) every 45+/-5 minutes
+    if (int(time.time()) - l1_time > 60*(45 + 5*rand_timer)) or first_pass :
+        print("reset sensors and report: ", time.localtime())
+        i = 1
+        l1_time = int(time.time())
+        l1 = init_l1()
+
+        if watchdog_flag:
+            w.feed()  # feed watchdog
+
+        n_l1 = len(l1)
+        len_l1 = max(tuple(len(itup) for itup in l1))  # get max text length
+
+    # reset l_3 (weather) every 60+/- 5 minutes
+    if (int(time.time()) - l3_time > 60*(60 + 5*rand_timer)) or first_pass:
+        k = 1
+        l3_time = int(time.time())
+        l3 = init_l3()
+        
+        if watchdog_flag:
+            w.feed()
+
+        n_l3 = len(l3)
+        len_l3 = max(tuple(len(itup) for itup in l3))  # get max text length
+
+    first_pass = False
+
+    len_l2 = 5
+
     k_eff=1
 
-    ## loop 3 initialize
-    j = 1
-    l3_x = -1000
-    toggle_l1=3
-    toggle_l3=3
+    time_struct = time.localtime()
+    hour = '{0:0>2}'.format(time_struct.tm_hour)
+    int_hour = int(hour)
 
-    # make web calls pseudorandom
-    rando1 = .2*(int(1000*(time.time())%5879)-1000)/1E4 + .5
-    print("rando1 = ", rando1, " hours")
-    gc.collect()
-    mem_last_1 = gc.mem_free()
-    print(mem_last_1)
+    ## Nightime dimming between 9pm and 6am
+    if int_hour > 21 or int_hour < 6:
+        color_x = 0x100000
+        clock_color = 0x101000
+        color_l3 = 0x100000
+    else:
+        color_x = 0xA7A7A7
+        clock_color = 0x408270
+        color_l3 = 0x3050C0
 
-    while time.time()-big_time < rando1*60*60:
-        print("big loop - refreshing data")
-
-        w.feed() #feed watchdog
-
-        # Get data
-        report_json = report()
-        sensors_json = sensors()
-        weather_text = weather()
-
-
-        text_l1_0 = sensors_json["temp"]
-        text_l1_1 = sensors_json["wind"]
-        text_l1_2 = sensors_json["base"]
-
-        text_l1_3 = report_json['snow_report']
-        text_l1_4 = report_json['season_total']
-        text_l1_5 = "* Louis  &  Leslie *" ## currently a dummy placeholder for report_json['powday']
-
-        ## toggle control parameter
-        n_l1 = 6  # this is a count of the number of lines above
-
-        text_l3_0 = weather_text['weather1']
-        text_l3_1 = weather_text['weather2']
-        text_l3_2 = weather_text['weather3']
-
-        ## toggle control parameter
-        n_l3 = 3  # this is a count of the number of lines above
-
-        flip_l2 = True
-
+    if l1_x < -4.5*(len_l1-2):
         i = 1
+        toggle_l1 = (toggle_l1 + 1)%(n_l1)
 
-        len_l1 = max(len(text_l1_0), len(text_l1_1), len(text_l1_2), len(text_l1_3), len(text_l1_4), len(text_l1_5))
+    text_l1 = l1[toggle_l1]
 
-        k = 1
-        k_eff=1
-        start_time = time.time()
-        last_scroll = 0
+    l1_x = (-i*3.2)%(64+5*len_l1)-5*len_l1
 
-        len_l2 = 5
+    line1 = adafruit_display_text.label.Label(
+        FONT,
+        color=color_x,
+        text=text_l1
+        )
+    line1.x = int(l1_x)
+    line1.y = 26
 
-        #l_3
-        j = 0
-        len_l3 = max(len(text_l3_0), len(text_l3_1), len(text_l3_2))
+    ## LINE 2 (CLOCK)
 
-        rando2 = .2*(int(1000*(time.time())%4919)-1000)/1E4 + .25  #in hours
-        print("rando2 = ", rando2, " hours")
+    time_struct = time.localtime()
+    time_now = '{0:0>2}'.format(time_struct.tm_hour)+ ':' + '{0:0>2}'.format(time_struct.tm_min)
 
-        mem_last_2 = gc.mem_free()
+    text_l2 = time_now
+    color_2 = clock_color
 
-        time_struct = time.localtime()
-        hour = '{0:0>2}'.format(time_struct.tm_hour)
-        int_hour = int(hour)
-        #print(int_hour)
-        print("...rip!")
+    line2_x = 10
+    line2_y = 14
 
-        color_x = 0x979797
-        color_x_l1_blue = 0x9797B7
-        color_x_l1_red = 0xB79797
-        clock_color = 0x45B466
-        color_l3 = 0x3B66BF
+    if dystopian_glitch:
 
-        ## Nightime dimming
-        if int_hour > 21 or int_hour < 6:
-            color_x = 0x100000
-            color_x_l1_blue = 0x100010
-            color_x_l1_red = 0x100000
-            clock_color = 0x101000
-            color_l3 = 0x100000
+        ## Glitch Time Display for dystopian effect
+        ## the more of these lines the less smooth the display appears
 
-        #print("entering small loop")
-        while time.time()-start_time < rando2*60*60:
-            if (i == 1 or k == 1 or j == 1):
-                print("starting small loop")
+        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 6 or (k+2*i+3*j)%312 == 18:
+            line2_x = 10-i%5+2
+            line2_y = 13 - k%3
+            color_2 = 0x002000
 
-            w.feed()  # feed Watchdog
+        if (i+j+k)%126 == 6:
+            line2_x = 10 + i%2
+            line2_y = 14
+            color_2 = color_2 + 0x101010
 
-            #print("here")
-            if l1_x < -4.5*(len_l1-2):
-                i = 1
-                toggle_l1 = (toggle_l1 + 1)%(n_l1)
+        if (2*k+i+3*j)%363 == 6:
+            line2_y = 15
+            line2_x = 15
+            color_2 = 0x202000
 
-            if toggle_l1 == 0:
-                text_l1 = text_l1_0
+        #if (k+2*i+2*j)%312 == 6:
+        #    line2_x = 11
+        #    line2_y = 15
+        #    color_2 = 0x003000
 
-            if toggle_l1 == 1:
-                text_l1 = text_l1_1
+        #if (k+2*i+2*j)%363 == 14:
+        #    line2_x = 10
+        #    line2_y = 8
+        #    color_2 = 0x001010
 
-            if toggle_l1 == 2:
-                text_l1 = text_l1_2
+    line2 = adafruit_display_text.label.Label(
+    LARGE_FONT,
+    color=color_2,
+    text=text_l2)
+    line2.x= line2_x
+    line2.y= line2_y
 
-            if toggle_l1 == 3:
-                text_l1 = text_l1_3
+    ## LINE 3 (Weather Report)
 
-            if toggle_l1 == 4:
-                text_l1 = text_l1_4
+    if l3_x < -4*(len_l3):
+        j = 1
+        toggle_l3 = (toggle_l3 + 1)%n_l3
 
-            if toggle_l1 == 5:
-                text_l1 = text_l1_5
+    text_l3 = l3[toggle_l3]
 
-            l1_x = (-i*3.2)%(64+5*len_l1)-5*len_l1
+    l3_x = (-j*2)%(64+5*len_l3)-5*len_l3
 
-            line1 = adafruit_display_text.label.Label(
-                FONT,
-                color=color_x,
-                text=text_l1
-                )
-            line1.x = int(l1_x)
-            line1.y = 26
+    color3 = color_l3
 
-            ##TEXT 2
-            time_struct = time.localtime()
-            time_now = '{0:0>2}'.format(time_struct.tm_hour)+ ':' + '{0:0>2}'.format(time_struct.tm_min)
+    line3 = adafruit_display_text.label.Label(
+        FONT,
+        color = color3,
+        text=text_l3)
+    line3.x= int(l3_x)
+    line3.y = 3
 
-            time_scroll_since = time.time() - last_scroll
-            l2_x = (-k_eff*4.5)%(64+7*len_l2)-7*len_l2
-
-            text_l2 = time_now
-            color_2 = clock_color
-
-            ## Glitch Time Display
-            if (k+2*i+3*j)%312 == 0:
-                line2.x = 9
-                line2.y = 12
-                color_2 = color_2 + 0x000020
-               
-            if (k+2*i+3*j)%312 == 6:
-                line2.x = 10
-                line2.y = 12
-                color_2 = color_2 + 0x100020
-
-            if (2*k+i+3*j)%363 == 6:
-                line2.y = 15
-                line2.x = 13
-                color_2 = color_2 + 0x002000
-
-            if (k+2*i+2*j)%312 == 6:
-                line2.x = 11
-                line2.y = 15
-                color_2 = 0x001000
-
-            if (k+2*i+2*j)%363 == 14:
-                line2.x = 10
-                line2.y = 14
-                color_2 = 0x000010
-
-            line2 = adafruit_display_text.label.Label(
-                    LARGE_FONT,
-                    color=color_2,
-                    text=text_l2)
-            line2.x = 10
-            line2.y = 14
+    g = displayio.Group()
+    g.append(line1)
+    g.append(line2)
+    g.append(line3)
 
 
-            ## TEXT 3
+    DISPLAY.show(g)
+    
+    # pause
+    time.sleep(.05)
 
-            if l3_x < -4*(len_l3-3):
-                j = 1
-                toggle_l3 = (toggle_l3 + 1)%(n_l3 + 1)  # adds a blank line
+    # scroll counters
+    k += 1
+    j += 1
+    i += 1
 
-            if toggle_l3 == 0:
-                text_l3 = text_l3_0
+    # clean up memory
+    gc.collect()
 
-            if toggle_l3 == 1:
-                text_l3 = text_l3_1
-
-            if toggle_l3 == 2:
-                text_l3 = text_l3_2
-
-            if toggle_l3 == 3:
-                text_l3 = "     "
-
-            l3_x = (-j*2)%(64+5*len_l3)-5*len_l3
-
-            color3 = color_l3
-
-            # glitch
-            if (k+i+3*j)%218 == 0:
-                line3.x = int(l3_x+2)
-                line3.y = 2
-                color3 = color_l3 + 0X000030
-
-            gc.collect()
-            #print(mem_last_2, "  ", gc.mem_free(),text_l1, "  ", text_l2, "  ",text_l3 )
-            line3 = adafruit_display_text.label.Label(
-                FONT,
-                color = color3,
-                text=text_l3)
-            line3.x= int(l3_x)
-            line3.y = 3
-
-            g = displayio.Group()
-            g.append(line1)
-            g.append(line2)
-            g.append(line3)
-
-
-            DISPLAY.show(g)
-            # clean up memory and pause
-            gc.collect()
-            time.sleep(.05)
-            # scroll counters
-            k += 1
-            j += 1
-            i += 1
-            #print(mem_last_1,mem_last_2, gc.mem_free())
-        else:
-            print("short loop expired", time.now())
-        gc.collect()
+    pass
