@@ -32,5 +32,6 @@ It is of the format
 - 2021,Nov.05: weather uses NWS api results
 - 2022 Jan 04: error handling. weather updates. large font
 - 2202 Jan 31: removed sunrise sunset from display. added 'conversational' intelligence
-- 2022 Feb 08: updated for CircuitPython 7.1, updated RTC to use time from Azure. Added watchdog timer to reset upon stall
+- 2022 Feb 08: updated for CircuitPython 7.1, updated RTC to use time from Azure. Added watchdog timer.
+- 2022 Nov 28: Major rev: Uses api calls for 2023 season. Includes an AI ski conditions commentary. 
 
