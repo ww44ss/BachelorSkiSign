@@ -25,6 +25,15 @@ It is of the format
     'timezone'  : 'America/Los_Angeles'
 }`
 
+*fonts* folder
+this folder contains the fonts necessary to run to board.
+helvB12.bdf
+helvB14.bdf
+helvR10.bdf
+
+*libs* folder
+These are the libraries necessary to run the board.
+
 
 ## recent changes:
 - 2021.Mar-07: originated
