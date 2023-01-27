@@ -1,12 +1,9 @@
 ## 2021.Mar-07: originated
 ## 2021.Aug-13: metric conversion, improved error handling
-## 2021,Nov.05: swith to NWS api
-## 2022 Jan 04: error handling. large font
+## 2021,Nov.05: swith to NWS api,error handling. large font
 ## 2022 Feb 08: CircuitPython 7.1, Added watchdog
-## 2022 Nov 16: updated for 2023
-##              - Reflect TZ uifo Pacific Time zone
-##              - text computed on web
 ## 2022 Nov 26: major rewrite
+##              - Reflect TZ info - default Pacific Time zone
 ##              - streamlined loops
 ##              - added conditions functionality
 
@@ -23,8 +20,11 @@ from adafruit_matrixportal.matrix import Matrix
 from adafruit_bitmap_font import bitmap_font
 import adafruit_display_text.label
 import adafruit_requests
+import adafruit_lis3dh
 
-## Couple of macro flags:
+##
+## CONFIGURABLE SETTINGS- -----------
+
 dystopian_glitch = True  #glitches time display
 watchdog_flag = True     #watchdog timer for automatic reboot on fault
 louis_and_leslie = False #"*Louis and Leslie*" displays
@@ -49,10 +49,10 @@ except:
     TIMEZONE = 'America/Los_Angeles'
     print('Using DEFAULT geolocation: ', LATITUDE, LONGITUDE)
 
-### Initialize Display
+### RUN INITIALIZATION OF DISPLAY
 # has four bit planes avail in mem
-# I want to make layer 4 show a picture. 
-# need to figure that out. 
+# I want to make layer 4 show a picture.
+# need to figure that out.
 
 BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
@@ -65,23 +65,31 @@ LARGE_FONT = bitmap_font.load_font('/fonts/helvB14.bdf') #need to update font li
 DISPLAY.rotation = 0
 
 ### Connect to Network
-
-
 NETWORK = Network(status_neopixel=board.NEOPIXEL, debug=False)
 NETWORK.connect()
 
+#try:
+#FILENAME = 'image/MtBLogo.bmp'
+    # CircuitPython 6 & 7 compatible
+    # BITMAP = displayio.OnDiskBitmap(open(FILENAME, 'rb'))
+    #TILE_GRID = displayio.TileGrid(
+    #    BITMAP,
+    #    pixel_shader=getattr(BITMAP, 'pixel_shader', displayio.ColorConverter())
+    #)
+
 ### make a joke
-print("  M5")
-time.sleep(.8)
-print(" * ")
-time.sleep(0.3)
-print(" ***")
-time.sleep(0.1)
-print("ww44ss")
-time.sleep(1.2)
+print("  awake")
+
+#try:
+#FILENAME = 'image/MtBLogo.bmp'
+    # CircuitPython 6 & 7 compatible
+    # BITMAP = displayio.OnDiskBitmap(open(FILENAME, 'rb'))
+    #TILE_GRID = displayio.TileGrid(
+    #    BITMAP,
+    #    pixel_shader=getattr(BITMAP, 'pixel_shader', displayio.ColorConverter())
+    #)
 
 ### Define functions
-
 
 def set_rtc():
     url = "https://bachelorapi.azurewebsites.net/time"
@@ -181,7 +189,7 @@ def conditions_text():
             retry = True
             print("c_retry", cycle)
             time.sleep(2)
-            
+
     return text
 
 def conditions():
@@ -213,20 +221,20 @@ def conditions():
     int_hour = int(hour)
 
     #print("conditions logic ", conditions)
-    
+
     if louis_and_leslie:
         conditions = "* Louis and Leslie *"
 
     ## Show conditions only between 7 and 11 am
-    if int_hour < 7 or int_hour > 10:
+    if int_hour < 7 or int_hour > 11:
         conditions = " "
-    
+
     return (conditions)
 
 def init_l1():
     report_json = report()
     sensors_json = sensors()
-    
+
     if watchdog_flag:
         w.feed()
 
@@ -238,7 +246,7 @@ def init_l1():
     text_l1_3 = report_json['snow_report']
     text_l1_4 = report_json['season_total']
     text_l1_5 = " " ## currently a dummy placeholder for report_json['powday']
-    
+
     if condition_flag:
         text_l1_5 = conditions()
 
@@ -247,7 +255,7 @@ def init_l1():
 
 def init_l3():
     weather_text = weather()
-    if watchdog_flag: 
+    if watchdog_flag:
         w.feed()
     text_l3_0 = weather_text['weather1']
     text_l3_1 = weather_text['weather2']
@@ -256,47 +264,57 @@ def init_l3():
     return(text_l3_0,text_l3_1, text_l3_2)
 
 
-## Set up WatchDogMode
-
+## SET UP WATCHDOG MODE ---------------------------------------------
 if watchdog_flag:
     w.timeout =  14 # seconds until watchdog timeout
     w.mode = WatchDogMode.RESET  # reset system upon timeout
     w.feed() #feed watchdog
 
 
-## initialize counters and timers
+## FIRST PASS BEFORE LOOP-------------------------------------------
 
+# INITIALIZE COUNTERS AND TIMERS
+
+first_pass = True
+
+# SET CLOCK
 set_rtc()
-## initialize reference times for reset cycles
+
+# INITIALIZE TIMERS
+
 big_time = int(time.time())
 l1_time = big_time
 l3_time = big_time
 conditions_time = big_time
 
+# LENGTH VARIABLES
 len_l1 = 1
 len_l2 = 1
 len_l3 = 1
 
+# POSITION VARIABLES
 l1_x = -1000
 toggle_l1 = 0
 l3_x = -1000
 toggle_l3 = 0
 
-
+# POSITION COUNTERS
 i = 1
 j = 1
 k = 1
 
-first_pass = True
-
+# RANDOM INTEGER BETWEEN -2 and +2
+# varaible timing for web calls
 rand_timer = int(time.time())%5 - 2   # random int between -2 and + 2
+
+## MAIN LOOP -----------------------------------------------------
 
 while True:
 
     if watchdog_flag:
         w.feed()  # feed watchdog
 
-    #reset rtc every 12 +/- 1 hours
+    #reset rtc every 12 +/- 2 hours
     if (int(time.time()) - big_time > 60*60*(12 + rand_timer) ) or first_pass :
         j = 1
         big_time = time.time()               # restart timer
@@ -323,7 +341,7 @@ while True:
         k = 1
         l3_time = int(time.time())
         l3 = init_l3()
-        
+
         if watchdog_flag:
             w.feed()
 
@@ -385,17 +403,17 @@ while True:
         if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 6 or (k+2*i+3*j)%312 == 18:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x002000
+            color_2 = 0x100000
 
         if (i+j+k)%126 == 6:
-            line2_x = 10 + i%2
+            line2_x = 10 + i%3
             line2_y = 14
             color_2 = color_2 + 0x101010
 
         if (2*k+i+3*j)%363 == 6:
             line2_y = 15
             line2_x = 15
-            color_2 = 0x202000
+            color_2 = 0x000001
 
         #if (k+2*i+2*j)%312 == 6:
         #    line2_x = 11
@@ -440,7 +458,7 @@ while True:
 
 
     DISPLAY.show(g)
-    
+
     # pause
     time.sleep(.05)
 
@@ -453,3 +471,4 @@ while True:
     gc.collect()
 
     pass
+
