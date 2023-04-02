@@ -1,17 +1,5 @@
-## 2021.Mar-07: originated
-## 2021.Aug-13: metric conversion, improved error handling
-## 2021,Nov.05: swith to NWS api
-## 2022 Jan 04: error handling. large font
-## 2022 Feb 08: CircuitPython 7.1, Added watchdog
-## 2022 Nov 16: updated for 2023
-##              - Reflect TZ uifo Pacific Time zone
-##              - text computed on web
-## 2022 Nov 26: major rewrite
-##              - streamlined loops
-##              - added conditions functionality
-
-
-## IMPORT LIBRAR## 2021 Mar-07: originated
+### *SNOW* BOARD #########
+## 2021 Mar-07: originated
 ## 2021 Nov.05: NWS api
 ## 2022 Feb 08: CircuitPython 7.1, watchdog
 ## 2022 Nov 26: update 2023 improved conditions functionality
@@ -184,10 +172,9 @@ while True:
         data = get_data2024()
         w.feed()
         ## form text lines from data
-
-        print(data)
+        # print(data)
         
-        l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind']]
+        l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind'], data['comment']]
         l3 = [data['weather1'], data['weather2'], data['weather3'], data['comment']]
         
     time_struct = time.localtime()
@@ -211,9 +198,11 @@ while True:
     ## LINE 1 (REPORT)
     if l1_x < -5*(len_l1)+5 or first_pass:
         i = 1
-        toggle_l1 = (toggle_l1 + 1)%5
+        toggle_l1 = (toggle_l1 + 1)%6
+        
         text_l1 = l1[toggle_l1]
         len_l1 = len(text_l1)
+        #print(text_l1)
 
     l1_x = int((-i*2.5)%(64+5*len_l1)-5*len_l1)
     
@@ -298,7 +287,7 @@ while True:
     i += 1
 
     # clean up memory
-    print("mem_free = ", gc.mem_free())
+    # print("mem_free = ", gc.mem_free())
     gc.collect()
 
     pass
