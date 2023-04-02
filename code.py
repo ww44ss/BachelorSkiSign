@@ -51,8 +51,8 @@ except:
 
 ### Initialize Display
 # has four bit planes avail in mem
-# I want to make layer 4 show a picture. 
-# need to figure that out. 
+# I want to make layer 4 show a picture.
+# need to figure that out.
 
 BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
@@ -70,18 +70,8 @@ DISPLAY.rotation = 0
 NETWORK = Network(status_neopixel=board.NEOPIXEL, debug=False)
 NETWORK.connect()
 
-### make a joke
-print("  M5")
-time.sleep(.8)
-print(" * ")
-time.sleep(0.3)
-print(" ***")
-time.sleep(0.1)
-print("ww44ss")
-time.sleep(1.2)
 
 ### Define functions
-
 
 def set_rtc():
     url = "https://bachelorapi.azurewebsites.net/time"
@@ -181,7 +171,7 @@ def conditions_text():
             retry = True
             print("c_retry", cycle)
             time.sleep(2)
-            
+
     return text
 
 def conditions():
@@ -213,20 +203,20 @@ def conditions():
     int_hour = int(hour)
 
     #print("conditions logic ", conditions)
-    
+
     if louis_and_leslie:
         conditions = "* Louis and Leslie *"
 
     ## Show conditions only between 7 and 11 am
     if int_hour < 7 or int_hour > 10:
         conditions = " "
-    
+
     return (conditions)
 
 def init_l1():
     report_json = report()
     sensors_json = sensors()
-    
+
     if watchdog_flag:
         w.feed()
 
@@ -238,7 +228,7 @@ def init_l1():
     text_l1_3 = report_json['snow_report']
     text_l1_4 = report_json['season_total']
     text_l1_5 = " " ## currently a dummy placeholder for report_json['powday']
-    
+
     if condition_flag:
         text_l1_5 = conditions()
 
@@ -247,7 +237,7 @@ def init_l1():
 
 def init_l3():
     weather_text = weather()
-    if watchdog_flag: 
+    if watchdog_flag:
         w.feed()
     text_l3_0 = weather_text['weather1']
     text_l3_1 = weather_text['weather2']
@@ -323,7 +313,7 @@ while True:
         k = 1
         l3_time = int(time.time())
         l3 = init_l3()
-        
+
         if watchdog_flag:
             w.feed()
 
@@ -440,7 +430,7 @@ while True:
 
 
     DISPLAY.show(g)
-    
+
     # pause
     time.sleep(.05)
 
