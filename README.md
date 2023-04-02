@@ -1,11 +1,11 @@
-# BachelorSkiSign
-Python Repository for Bachelor Ski Sign. This application reads data from an [api](https://bachelorapi.azurewebsites.net/) curretly running on Azure
+# *Snow* Board (c)
+Python Repository for *Snow* Board. This application reads data from an [api](https://bachelorapi.azurewebsites.net/) running on Azure.  
 It is written in Ciruit Python for the Adafruit M4 controller and display board. 
 - [Adafruit Matrix Portal M4](https://www.adafruit.com/product/4745)   
 - [64x32 RGB LED Matrix - 3mm pitch](https://www.adafruit.com/product/2279)
 
 You also need to download the most recent version of the [CircuitPython uf2](https://learn.adafruit.com/welcome-to-circuitpython/installing-circuitpython).
-To install it press the reset button on your board *twice* to enter the boot loader mode on the board computer. You'll recongize this because a boot loader directory will appear on the screen of your host computer. Just frag the new uf2 into the boot loader directory and you will be good to go!
+If you have hardware you can install by pressing the reset button on your board *twice* to enter the boot loader mode on the board computer. You'll recongize this because a boot loader directory will appear on the screen of your host computer. Just drag the new uf2 into the boot loader directory and you will be good to go!
 
 ## files   
 
@@ -34,6 +34,8 @@ helvR10.bdf
 *libs* folder
 These are the libraries necessary to run the board.
 
+*image* folder
+This contains MtBLogo.bmp for the boot splash screen.
 
 ## recent changes:
 - 2021.Mar-07: originated
@@ -43,4 +45,7 @@ These are the libraries necessary to run the board.
 - 2202 Jan 31: removed sunrise sunset from display. added 'conversational' intelligence
 - 2022 Feb 08: updated for CircuitPython 7.1, updated RTC to use time from Azure. Added watchdog timer.
 - 2022 Nov 28: Major rev: Uses api calls for 2023 season. Includes an AI ski conditions commentary. 
+- 2023 Apr 01: Simplified api call. Added splash Screen.   
 
+*Snow* Board (c) is the copyrighted name of active display devices.   
+  
