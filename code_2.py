@@ -174,7 +174,7 @@ while True:
 
         print(data)
 
-        l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind']]
+        l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind'], data['comment']]
         l3 = [data['weather1'], data['weather2'], data['weather3'], data['comment']]
 
     time_struct = time.localtime()
@@ -198,9 +198,11 @@ while True:
     ## LINE 1 (REPORT)
     if l1_x < -5*(len_l1)+5 or first_pass:
         i = 1
-        toggle_l1 = (toggle_l1 + 1)%5
+        toggle_l1 = (toggle_l1 + 1)%6
+
         text_l1 = l1[toggle_l1]
         len_l1 = len(text_l1)
+        #print(text_l1)
 
     l1_x = int((-i*2.5)%(64+5*len_l1)-5*len_l1)
 
@@ -285,7 +287,7 @@ while True:
     i += 1
 
     # clean up memory
-    print("mem_free = ", gc.mem_free())
+    # print("mem_free = ", gc.mem_free())
     gc.collect()
 
     pass
