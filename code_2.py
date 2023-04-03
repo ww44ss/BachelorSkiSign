@@ -115,7 +115,7 @@ def get_data2024():
             retry = True
             cycle += 1
             w.feed()
-            time.sleep(2)
+            time.sleep(1.5)
         w.feed()
     return text
 
@@ -124,7 +124,7 @@ def get_data2024():
 first_pass = True
 
 ## Set up WatchDogMode
-w.timeout =  12 # seconds until watchdog timeout
+w.timeout =  13 # seconds until watchdog timeout
 w.mode = WatchDogMode.RESET  # reset system upon timeout
 w.feed() #feed watchdog
 
@@ -198,7 +198,7 @@ while True:
     ## LINE 1 (REPORT)
     if l1_x < -5*(len_l1)+5 or first_pass:
         i = 1
-        toggle_l1 = (toggle_l1 + 1)%6
+        toggle_l1 = (toggle_l1 + 1)%len(l1)
 
         text_l1 = l1[toggle_l1]
         len_l1 = len(text_l1)
@@ -255,7 +255,7 @@ while True:
     ## LINE 3 (Weather Report)
     if l3_x < -5*len_l3+5 or first_pass:
         j = 1
-        toggle_l3 = (toggle_l3 + 1)%4
+        toggle_l3 = (toggle_l3 + 1)%len(l3)
         text_l3 = l3[toggle_l3]
         len_l3 = len(text_l3)
 
