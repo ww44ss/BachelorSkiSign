@@ -1,3 +1,4 @@
+#### *SNOW* BOARD #########
 ## 2021 Mar-07: originated
 ## 2021 Nov.05: NWS api
 ## 2022 Feb 08: CircuitPython 7.1, watchdog
@@ -20,7 +21,8 @@ import adafruit_requests
 
 ####################################
 ## Initialize Variables and Screen
-
+print("*Snow* Board(c)Productions")
+print("A division of *Skiing S Ranch* Enterprises")
 ## Flag
 dystopian_glitch0 = True
 
@@ -40,6 +42,8 @@ except:
     LONGITUDE = -121.608
     TIMEZONE = 'America/Los_Angeles'
     print('Using DEFAULT geolocation: ', LATITUDE, LONGITUDE)
+
+print("here2")
 
 BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
@@ -115,7 +119,7 @@ def get_data2024():
             retry = True
             cycle += 1
             w.feed()
-            time.sleep(1.5)
+            time.sleep(2)
         w.feed()
     return text
 
@@ -124,7 +128,7 @@ def get_data2024():
 first_pass = True
 
 ## Set up WatchDogMode
-w.timeout =  13 # seconds until watchdog timeout
+w.timeout =  12 # seconds until watchdog timeout
 w.mode = WatchDogMode.RESET  # reset system upon timeout
 w.feed() #feed watchdog
 
@@ -171,11 +175,10 @@ while True:
         data = get_data2024()
         w.feed()
         ## form text lines from data
-
-        print(data)
+        # print(data)
 
         l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind'], data['comment']]
-        l3 = [data['weather1'], data['weather2'], data['weather3'], data['comment']]
+        l3 = [data['weather1'], data['weather2'], data['weather3']]
 
     time_struct = time.localtime()
     hour = '{0:0>2}'.format(time_struct.tm_hour)

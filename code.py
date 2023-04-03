@@ -21,9 +21,10 @@ import adafruit_requests
 
 ####################################
 ## Initialize Variables and Screen
-
+print("*Snow* Board(c)Productions")
+print("A division of *Skiing S Ranch* Enterprises")
 ## Flag
-dystopian_glitch0 = True  
+dystopian_glitch0 = True
 
 ## GRAB SECRETS AND ASSIGN VARIABLES
 try:
@@ -41,6 +42,8 @@ except:
     LONGITUDE = -121.608
     TIMEZONE = 'America/Los_Angeles'
     print('Using DEFAULT geolocation: ', LATITUDE, LONGITUDE)
+
+print("here2")
 
 BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
@@ -91,11 +94,11 @@ def set_rtc():
     ## set RTC
     RTC().datetime = time.struct_time(y_m_d_h_m_s)
     return
-    
-## Get sign data    
+
+## Get sign data
 def get_data2024():
     url="https://bachelorapi.azurewebsites.net/data2024"
-    
+
     retry = True
     cycle = 1
 
@@ -105,7 +108,7 @@ def get_data2024():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            text = {"comment": "", "snow_base": " 3.5 m base", 
+            text = {"comment": "", "snow_base": " 3.5 m base",
             "snow_fall": "36 cm Fresh *Snow* Overnight",
             "snow_season": " 10.5 m  season total",
             "temp": "Temp -8\u00b0C",
@@ -173,10 +176,10 @@ while True:
         w.feed()
         ## form text lines from data
         # print(data)
-        
+
         l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind'], data['comment']]
-        l3 = [data['weather1'], data['weather2'], data['weather3'], data['comment']]
-        
+        l3 = [data['weather1'], data['weather2'], data['weather3']]
+
     time_struct = time.localtime()
     hour = '{0:0>2}'.format(time_struct.tm_hour)
     int_hour = int(hour)
@@ -194,18 +197,18 @@ while True:
         clock_color = 0x20C250
         color_3 = 0x3030C0
         dystopian_glitch = dystopian_glitch0
-    
+
     ## LINE 1 (REPORT)
     if l1_x < -5*(len_l1)+5 or first_pass:
         i = 1
-        toggle_l1 = (toggle_l1 + 1)%6
-        
+        toggle_l1 = (toggle_l1 + 1)%len(l1)
+
         text_l1 = l1[toggle_l1]
         len_l1 = len(text_l1)
         #print(text_l1)
 
     l1_x = int((-i*2.5)%(64+5*len_l1)-5*len_l1)
-    
+
     line1 = adafruit_display_text.label.Label(
         FONT,
         color=color_x,
@@ -238,7 +241,7 @@ while True:
         #    line2_y = 15
         #    line2_x = 15
         #    color_2 = 0x202000
-        
+
         if int_mins != int_mins_old:
             int_mins_old = int_mins
             line2_x = 10-i%5+2
@@ -255,10 +258,10 @@ while True:
     ## LINE 3 (Weather Report)
     if l3_x < -5*len_l3+5 or first_pass:
         j = 1
-        toggle_l3 = (toggle_l3 + 1)%4
+        toggle_l3 = (toggle_l3 + 1)%len(l3)
         text_l3 = l3[toggle_l3]
         len_l3 = len(text_l3)
-        
+
     l3_x = int((-j*2)%(64+5*len_l3)-5*len_l3)
 
     line3 = adafruit_display_text.label.Label(
@@ -268,7 +271,7 @@ while True:
         )
     line3.x = int(l3_x)#+5*start_text
     line3.y = 3
-    
+
     g = displayio.Group()
     #g.append(logo)
     g.append(line2)
