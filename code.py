@@ -190,7 +190,7 @@ while True:
     if int_hour > 21 or int_hour < 6:
         color_x = 0x100000
         clock_color = 0x100000
-        color_l3 = 0x100000
+        color_3 = 0x100000
         dystopian_glitch=False
     else:
         color_x = 0xA7A7A7
