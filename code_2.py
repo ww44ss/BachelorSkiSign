@@ -1,9 +1,9 @@
-#### *SNOW* BOARD #########
+### *SNOW* BOARD #########
 ## 2021 Mar-07: originated
 ## 2021 Nov.05: NWS api
 ## 2022 Feb 08: CircuitPython 7.1, watchdog
 ## 2022 Nov 26: update 2023 improved conditions functionality
-## 2023 Apr 01: update 2024 simplified web access and logo
+## 2023 Apr 17: update 2024 simplified web access and and logo splash()
 
 ## IMPORT LIBRARIES
 import json, board, time, gc
@@ -21,10 +21,11 @@ import adafruit_requests
 
 ####################################
 ## Initialize Variables and Screen
-print("*Snow* Board(c)Productions")
-print("A division of *Skiing S Ranch* Enterprises")
+print("*Snow*Board(c)Productions")
+print("*Skiing S* Enterprises")
 ## Flag
 dystopian_glitch0 = True
+S_N = 03
 
 ## GRAB SECRETS AND ASSIGN VARIABLES
 try:
@@ -50,15 +51,18 @@ MATRIX = Matrix(bit_depth=BITPLANES)
 DISPLAY = MATRIX.display
 
 ## Logo Splash
-g = displayio.Group()
-FILENAME = 'image/MtBLogo.bmp'
-# CircuitPython 7+ compatible
-BITMAP = displayio.OnDiskBitmap(FILENAME)
-logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
+def splash():
+    g = displayio.Group()
+    FILENAME = 'image/MtBLogo.bmp'
+    # CircuitPython 7+ compatible
+    BITMAP = displayio.OnDiskBitmap(FILENAME)
+    logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
 
-DISPLAY.rotation = 0
-g.append(logo)
-DISPLAY.show(g)
+    DISPLAY.rotation = 0
+    g.append(logo)
+    DISPLAY.show(g)
+
+splash()
 
 ## Load fonts
 FONT = bitmap_font.load_font('/fonts/helvR10.bdf')
@@ -126,9 +130,10 @@ def get_data2024():
 #########################################
 ####### INITIALIZE RUNTIME ################
 first_pass = True
+int_erval = 19
 
 ## Set up WatchDogMode
-w.timeout =  12 # seconds until watchdog timeout
+w.timeout =  13 # seconds until watchdog timeout
 w.mode = WatchDogMode.RESET  # reset system upon timeout
 w.feed() #feed watchdog
 
@@ -137,9 +142,10 @@ time_struct = time.localtime()
 hour = '{0:0>2}'.format(time_struct.tm_hour)
 int_hour = int(hour)
 mins = '{0:0>2}'.format(time_struct.tm_min)
-int_mins_old = int(mins)
 
-big_time = int(time.time())
+int_mins_old = int(mins) # used for clock minute glitch and renew data
+int_erval = 19
+int_renew = int_mins_old # used to drive refresh
 
 # display variables
 len_l1 = 1
@@ -147,35 +153,33 @@ len_l2 = 1
 len_l3 = 1
 
 l1_x = -1000
-toggle_l1 = 6
+toggle_l1 = 5
 l3_x = -1000
-toggle_l3 = 4
+toggle_l3 = 3
 
 i = 1
 j = 1
 k = 1
 #set random timer
-rand_timer = int(time.time())%240 - 120   # random int between -3 and + 3
+rand_timer = -30   # random int between -360 and +360 seconds
 # clean up
 gc.collect()
+
 
 while True:
 
     w.feed()  # feed watchdog
-
-    #reset every 20 +/- 4 minutes
-    if (int(time.time()) - big_time > 60*20 + rand_timer)  or first_pass :
+    if int_min = int_renew:
+        int_renew = (int_renew + int_erval)%60
+        splash()
         j = 1
-        big_time = time.time()               # restart timer
-        rand_timer = int(time.time())%240 - 120  # random int between -3 and + 3
-        print("bingo1", rand_timer)
+        #print("bingo1", rand_timer)
         w.feed()
         set_rtc()
         w.feed()
         data = get_data2024()
         w.feed()
         ## form text lines from data
-        # print(data)
 
         l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind'], data['comment']]
         l3 = [data['weather1'], data['weather2'], data['weather3']]
@@ -190,7 +194,7 @@ while True:
     if int_hour > 21 or int_hour < 6:
         color_x = 0x100000
         clock_color = 0x100000
-        color_l3 = 0x100000
+        color_3 = 0x100000
         dystopian_glitch=False
     else:
         color_x = 0xA7A7A7
@@ -207,14 +211,12 @@ while True:
         len_l1 = len(text_l1)
         #print(text_l1)
 
-    l1_x = int((-i*2.5)%(64+5*len_l1)-5*len_l1)
+    l1_x = int((-i*3)%(64+5*len_l1)-5*len_l1)
 
     line1 = adafruit_display_text.label.Label(
         FONT,
         color=color_x,
-        text=text_l1
-        #text=text_l1[start_text:end_text]
-        )
+        text=text_l1)
     line1.x = int(l1_x) #+5*start_text
     line1.y = 25
 
@@ -232,10 +234,10 @@ while True:
 
         ## Glitch Time Display for dystopian effect
         ## the more of these lines the less smooth the display appears
-        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 6 or (k+2*i+3*j)%312 == 18:
+        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 12:# or (k+2*i+3*j)%312 == 18:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x002000
+            color_2 = 0x304000
 
         #if (2*k+i+3*j)%363 == 6:
         #    line2_y = 15
@@ -246,7 +248,7 @@ while True:
             int_mins_old = int_mins
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x602000
+            color_2 = 0x604000
 
     line2 = adafruit_display_text.label.Label(
     LARGE_FONT,
@@ -271,8 +273,10 @@ while True:
         )
     line3.x = int(l3_x)#+5*start_text
     line3.y = 3
-
+    #splash()
     g = displayio.Group()
+
+
     #g.append(logo)
     g.append(line2)
     g.append(line1)
@@ -282,7 +286,7 @@ while True:
 
     # pause
     time.sleep(.02)
-    first_pass = False
+    #first_pass = False
 
     # scroll counters
     k += 1
@@ -290,7 +294,7 @@ while True:
     i += 1
 
     # clean up memory
-    # print("mem_free = ", gc.mem_free())
+    #print("mem_free = ", gc.mem_free())
     gc.collect()
 
     pass
