@@ -1,8 +1,6 @@
 ### *SNOW* BOARD #########
-## 2021 Mar-07: originated
-## 2021 Nov.05: NWS api
-## 2022 Feb 08: CircuitPython 7.1, watchdog
-## 2022 Nov 26: update 2023 improved conditions functionality
+## 2021 Mar-07: originated, add NWS api
+## 2022: CircuitPython 7.1, watchdog, improved conditions functionality
 ## 2023 Apr 17: update 2024 simplified web access and and logo splash()
 
 ## IMPORT LIBRARIES
@@ -25,7 +23,7 @@ print("*Snow*Board(c)Productions")
 print("*Skiing S* Enterprises")
 ## Flag
 dystopian_glitch0 = True
-S_N = 03
+S_N = 1  # serial number
 
 ## GRAB SECRETS AND ASSIGN VARIABLES
 try:
@@ -44,16 +42,26 @@ except:
     TIMEZONE = 'America/Los_Angeles'
     print('Using DEFAULT geolocation: ', LATITUDE, LONGITUDE)
 
-print("here2")
-
 BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
 DISPLAY = MATRIX.display
 
+spl = 0
 ## Logo Splash
-def splash():
+def splash(spl):
+
     g = displayio.Group()
-    FILENAME = 'image/MtBLogo.bmp'
+    # alternate images
+    if spl == 0:
+        FILENAME = 'image/MtBLogo.bmp'
+    if spl == 1:
+        FILENAME = 'image/bachelor_mtn3.bmp'
+    if spl == 2:
+        FILENAME = 'image/skier3_3264.bmp'
+    if spl == 3:
+        FILENAME = 'image/skier4_3264.bmp'
+        spl = 0
+    spl = (spl + 1)%4
     # CircuitPython 7+ compatible
     BITMAP = displayio.OnDiskBitmap(FILENAME)
     logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
@@ -61,8 +69,9 @@ def splash():
     DISPLAY.rotation = 0
     g.append(logo)
     DISPLAY.show(g)
+    return(spl)
 
-splash()
+spl = splash(spl)
 
 ## Load fonts
 FONT = bitmap_font.load_font('/fonts/helvR10.bdf')
@@ -130,7 +139,6 @@ def get_data2024():
 #########################################
 ####### INITIALIZE RUNTIME ################
 first_pass = True
-int_erval = 19
 
 ## Set up WatchDogMode
 w.timeout =  13 # seconds until watchdog timeout
@@ -142,10 +150,11 @@ time_struct = time.localtime()
 hour = '{0:0>2}'.format(time_struct.tm_hour)
 int_hour = int(hour)
 mins = '{0:0>2}'.format(time_struct.tm_min)
-
-int_mins_old = int(mins) # used for clock minute glitch and renew data
-int_erval = 19
-int_renew = int_mins_old # used to drive refresh
+int_mins = int(mins)
+int_mins_old = int_mins
+int_erval = 15
+int_renew = (int(int_mins/15)*15+int_erval+S_N)%60
+int_mins_old = int_mins
 
 # display variables
 len_l1 = 1
@@ -160,27 +169,29 @@ toggle_l3 = 3
 i = 1
 j = 1
 k = 1
-#set random timer
-rand_timer = -30   # random int between -360 and +360 seconds
 # clean up
 gc.collect()
+
+#start
+first_pass = True
 
 
 while True:
 
     w.feed()  # feed watchdog
-    if int_min = int_renew:
+    if int_mins == int_renew or first_pass:  # check on renewal
+        spl = splash(spl)
         int_renew = (int_renew + int_erval)%60
-        splash()
+        print("int_mins= ",int_mins,"  int_renew= ", int_renew, "  int_erval= ",int_erval)
         j = 1
-        #print("bingo1", rand_timer)
         w.feed()
         set_rtc()
         w.feed()
         data = get_data2024()
         w.feed()
-        ## form text lines from data
+        first_pass = False
 
+        ## form text lines from data
         l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind'], data['comment']]
         l3 = [data['weather1'], data['weather2'], data['weather3']]
 
@@ -203,7 +214,7 @@ while True:
         dystopian_glitch = dystopian_glitch0
 
     ## LINE 1 (REPORT)
-    if l1_x < -5*(len_l1)+5 or first_pass:
+    if l1_x < -5*(len_l1)+5:
         i = 1
         toggle_l1 = (toggle_l1 + 1)%len(l1)
 
