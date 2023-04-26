@@ -57,11 +57,8 @@ def splash(spl):
     if spl == 1:
         FILENAME = 'image/bachelor_mtn3.bmp'
     if spl == 2:
-        FILENAME = 'image/skier3_3264.bmp'
-    if spl == 3:
         FILENAME = 'image/skier4_3264.bmp'
-        spl = 0
-    spl = (spl + 1)%4
+    spl = (spl + 1)%3
     # CircuitPython 7+ compatible
     BITMAP = displayio.OnDiskBitmap(FILENAME)
     logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
@@ -153,7 +150,7 @@ mins = '{0:0>2}'.format(time_struct.tm_min)
 int_mins = int(mins)
 int_mins_old = int_mins
 int_erval = 15
-int_renew = (int(int_mins/15)*15+int_erval+S_N)%60
+int_renew = (int(int_mins/15)*15+S_N)%60
 int_mins_old = int_mins
 
 # display variables
@@ -244,16 +241,10 @@ while True:
     if dystopian_glitch:
 
         ## Glitch Time Display for dystopian effect
-        ## the more of these lines the less smooth the display appears
         if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 12:# or (k+2*i+3*j)%312 == 18:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
             color_2 = 0x304000
-
-        #if (2*k+i+3*j)%363 == 6:
-        #    line2_y = 15
-        #    line2_x = 15
-        #    color_2 = 0x202000
 
         if int_mins != int_mins_old:
             int_mins_old = int_mins
