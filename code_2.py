@@ -46,29 +46,22 @@ BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
 DISPLAY = MATRIX.display
 
-spl = 0
+
 ## Logo Splash
-def splash(spl):
+def splash():
 
     g = displayio.Group()
     # alternate images
-    if spl == 0:
-        FILENAME = 'image/MtBLogo.bmp'
-    if spl == 1:
-        FILENAME = 'image/bachelor_mtn3.bmp'
-    if spl == 2:
-        FILENAME = 'image/skier4_3264.bmp'
-    spl = (spl + 1)%3
-    # CircuitPython 7+ compatible
+    FILENAME = 'image/bachelor_mtn3.bmp'
     BITMAP = displayio.OnDiskBitmap(FILENAME)
     logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
-
     DISPLAY.rotation = 0
     g.append(logo)
     DISPLAY.show(g)
-    return(spl)
+    return()
 
-spl = splash(spl)
+#startup Impage
+splash()
 
 ## Load fonts
 FONT = bitmap_font.load_font('/fonts/helvR10.bdf')
@@ -177,7 +170,7 @@ while True:
 
     w.feed()  # feed watchdog
     if int_mins == int_renew or first_pass:  # check on renewal
-        spl = splash(spl)
+        splash()
         int_renew = (int_renew + int_erval)%60
         print("int_mins= ",int_mins,"  int_renew= ", int_renew, "  int_erval= ",int_erval)
         j = 1
