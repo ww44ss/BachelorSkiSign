@@ -23,7 +23,7 @@ print("*Snow*Board(c)Productions")
 print("*Skiing S* Enterprises")
 ## Flag
 dystopian_glitch0 = True
-S_N = 1  # serial number
+S_N = 4  # serial number
 
 ## GRAB SECRETS AND ASSIGN VARIABLES
 try:
@@ -51,8 +51,13 @@ DISPLAY = MATRIX.display
 def splash():
 
     g = displayio.Group()
-    # alternate images
-    FILENAME = 'image/bachelor_mtn3.bmp'
+    time_struct = time.localtime()
+    hour = '{0:0>2}'.format(time_struct.tm_hour)
+    int_hour = int(hour)
+    FILENAME = 'image/splash_s.bmp'
+    if int_hour >6 and int_hour < 21:
+            FILENAME = 'image/splash.bmp'
+    print("int_hour = ", int_hour, "    FILENAME = ", FILENAME)
     BITMAP = displayio.OnDiskBitmap(FILENAME)
     logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
     DISPLAY.rotation = 0
@@ -89,7 +94,7 @@ def set_rtc():
             cycle += 1
             print("t_retry", cycle)
             time.sleep(.5)
-
+    print("time cycle = ", cycle)
     time_date = fetched_data['pacific_time']
     y_m_d_h_m_s = time_date.split('T')[0].split('-')+ time_date.split('T')[1].split('-')[0].split(':')
     y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['35', 0, '-1','-1']]
