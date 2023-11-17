@@ -51,13 +51,8 @@ DISPLAY = MATRIX.display
 def splash():
 
     g = displayio.Group()
-    time_struct = time.localtime()
-    hour = '{0:0>2}'.format(time_struct.tm_hour)
-    int_hour = int(hour)
-    FILENAME = 'image/splash_s.bmp'
-    if int_hour >6 and int_hour < 21:
-            FILENAME = 'image/splash.bmp'
-    print("int_hour = ", int_hour, "    FILENAME = ", FILENAME)
+    # alternate images
+    FILENAME = 'image/MtBLogo.bmp'
     BITMAP = displayio.OnDiskBitmap(FILENAME)
     logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
     DISPLAY.rotation = 0
@@ -204,8 +199,8 @@ while True:
         dystopian_glitch=False
     else:
         color_x = 0xA7A7A7
-        clock_color = 0x20C250
-        color_3 = 0x3030C0
+        clock_color = 0x80C260
+        color_3 = 0x3060D0
         dystopian_glitch = dystopian_glitch0
 
     ## LINE 1 (REPORT)
@@ -239,16 +234,16 @@ while True:
     if dystopian_glitch:
 
         ## Glitch Time Display for dystopian effect
-        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 12:# or (k+2*i+3*j)%312 == 18:
+        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 12 or (k+2*i+3*j)%312 == 36:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x304000
+            color_2 = 0x002000
 
         if int_mins != int_mins_old:
             int_mins_old = int_mins
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x604000
+            color_2 = 0x200010
 
     line2 = adafruit_display_text.label.Label(
     LARGE_FONT,
@@ -298,3 +293,4 @@ while True:
     gc.collect()
 
     pass
+
