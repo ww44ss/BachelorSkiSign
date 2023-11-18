@@ -1,7 +1,6 @@
 ### *SNOW* BOARD #########
-## 2021 Mar-07: originated, add NWS api
-## 2022: CircuitPython 7.1, watchdog, improved conditions functionality
-## 2023 Apr 17: update 2024 simplified web access and and logo splash()
+## 2021 Mar-07: originated
+## 2024 Nov 17: update 2024
 
 ## IMPORT LIBRARIES
 import json, board, time, gc
@@ -19,11 +18,11 @@ import adafruit_requests
 
 ####################################
 ## Initialize Variables and Screen
-print("*Snow*Board(c)Productions")
-print("*Skiing S* Enterprises")
+print("*Snow*Board")
+print("*Skiing S*")
 ## Flag
 dystopian_glitch0 = True
-S_N = 4  # serial number
+S_N = 6  # serial number
 
 ## GRAB SECRETS AND ASSIGN VARIABLES
 try:
@@ -111,14 +110,14 @@ def get_data2024():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            text = {"comment": "", "snow_base": " 3.5 m base",
+            text = {"comment": "", "snow_base": " 3.5 m Base",
             "snow_fall": "36 cm Fresh *Snow* Overnight",
-            "snow_season": " 10.5 m  season total",
-            "temp": "Temp -8\u00b0C",
+            "snow_season": " 21-22 Season Total 10.5 m",
+            "temp": "Pine Temp -8\u00b0C",
             "weather1": "28 to 43 cm *Snow* Today",
             "weather2": "*Snow* Showers Tonight",
             "weather3": "& *Snow* Showers Sunday",
-            "wind": "Wind 45 to 76 kph"}
+            "wind": "PMX Wind 45 to 76 kph"}
             retry = True
             cycle += 1
             w.feed()
@@ -198,9 +197,9 @@ while True:
         color_3 = 0x100000
         dystopian_glitch=False
     else:
-        color_x = 0xA7A7A7
+        color_x = 0xB7A7A7
         clock_color = 0x80C260
-        color_3 = 0x3060D0
+        color_3 = 0x3040D0
         dystopian_glitch = dystopian_glitch0
 
     ## LINE 1 (REPORT)
@@ -234,7 +233,7 @@ while True:
     if dystopian_glitch:
 
         ## Glitch Time Display for dystopian effect
-        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 12 or (k+2*i+3*j)%312 == 36:
+        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 12 or (k+2*i+3*j)%312 == 48:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
             color_2 = 0x002000
@@ -243,7 +242,7 @@ while True:
             int_mins_old = int_mins
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x200010
+            color_2 = 0x101000
 
     line2 = adafruit_display_text.label.Label(
     LARGE_FONT,
