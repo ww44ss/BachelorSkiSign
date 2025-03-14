@@ -1,14 +1,14 @@
-### *SNOW* BOARD #########
+#### *SNOW* BOARD #########
 ## 2021 Mar-07: originated
-## 2021 Nov.05: NWS api
-## 2022 Feb 08: CircuitPython 7.1, watchdog
-## 2022 Nov 26: update 2023 improved conditions functionality
-## 2023 Apr 17: update 2024 simplified web access and and logo splash()
+## 2024 Nov 17: update 2024
+## 2025 Mar 13: CPython 9.x
+        ## needed to update libraries
 
 ## IMPORT LIBRARIES
 import json, board, time, gc
 import busio
 import displayio
+import terminalio
 from rtc import RTC
 from adafruit_matrixportal.network import Network
 from microcontroller import watchdog as w
@@ -21,10 +21,11 @@ import adafruit_requests
 
 ####################################
 ## Initialize Variables and Screen
-print("*Snow* Board(c)Productions")
-print("A division of *Skiing S Ranch* Enterprises")
+print("*Snow*Board")
+print("*Skiing S*")
 ## Flag
 dystopian_glitch0 = True
+S_N = 5  # serial number
 
 ## GRAB SECRETS AND ASSIGN VARIABLES
 try:
@@ -43,29 +44,32 @@ except:
     TIMEZONE = 'America/Los_Angeles'
     print('Using DEFAULT geolocation: ', LATITUDE, LONGITUDE)
 
-print("here2")
-
 BITPLANES = 4
 MATRIX = Matrix(bit_depth=BITPLANES)
 DISPLAY = MATRIX.display
 
+
 ## Logo Splash
 def splash():
+
     g = displayio.Group()
+    # alternate images
     FILENAME = 'image/MtBLogo.bmp'
-    # CircuitPython 7+ compatible
     BITMAP = displayio.OnDiskBitmap(FILENAME)
     logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
-
-    DISPLAY.rotation = 0
+    DISPLAY.rotation = 180
     g.append(logo)
-    DISPLAY.show(g)
+    DISPLAY.root_group = g
+    return()
 
+#startup Impage
 splash()
 
 ## Load fonts
-FONT = bitmap_font.load_font('/fonts/helvR10.bdf')
+FONT = bitmap_font.load_font('/fonts/timB10.bdf')
 LARGE_FONT = bitmap_font.load_font('/fonts/helvB14.bdf') #need to update font library
+LARGER_FONT = bitmap_font.load_font('/fonts/timB18.bdf') #need to update font library
+
 
 ### Connect to Network
 NETWORK = Network(status_neopixel=board.NEOPIXEL, debug=False)
@@ -89,7 +93,7 @@ def set_rtc():
             cycle += 1
             print("t_retry", cycle)
             time.sleep(.5)
-
+    print("time cycle = ", cycle)
     time_date = fetched_data['pacific_time']
     y_m_d_h_m_s = time_date.split('T')[0].split('-')+ time_date.split('T')[1].split('-')[0].split(':')
     y_m_d_h_m_s = [int(i) for i in y_m_d_h_m_s + ['35', 0, '-1','-1']]
@@ -111,14 +115,14 @@ def get_data2024():
             text = json.loads(NETWORK.fetch_data(url))
             retry = False
         except:
-            text = {"comment": "", "snow_base": " 3.5 m base",
+            text = {"comment": "", "snow_base": " 3.5 m Base",
             "snow_fall": "36 cm Fresh *Snow* Overnight",
-            "snow_season": " 10.5 m  season total",
-            "temp": "Temp -8\u00b0C",
+            "snow_season": " 21-22 Season Total 10.5 m",
+            "temp": "Pine Temp -8\u00b0C",
             "weather1": "28 to 43 cm *Snow* Today",
             "weather2": "*Snow* Showers Tonight",
             "weather3": "& *Snow* Showers Sunday",
-            "wind": "Wind 45 to 76 kph"}
+            "wind": "PMX Wind 45 to 76 kph"}
             retry = True
             cycle += 1
             w.feed()
@@ -140,9 +144,12 @@ time_struct = time.localtime()
 hour = '{0:0>2}'.format(time_struct.tm_hour)
 int_hour = int(hour)
 mins = '{0:0>2}'.format(time_struct.tm_min)
-int_mins_old = int(mins)
+int_mins = int(mins)
+int_mins_old = int_mins
 
-big_time = int(time.time())
+int_erval = 30
+int_renew = (int(int_mins/15)*15+S_N)%60
+int_mins_old = int_mins
 
 # display variables
 len_l1 = 1
@@ -157,28 +164,29 @@ toggle_l3 = 3
 i = 1
 j = 1
 k = 1
-#set random timer
-rand_timer = -30   # random int between -360 and +360 seconds
 # clean up
 gc.collect()
+
+#start
+first_pass = True
+
 
 while True:
 
     w.feed()  # feed watchdog
-    #reset every 12 +/- 6 minutes
-    if (int(time.time()) - big_time > 60*12 + rand_timer)  or first_pass :
+    if int_mins == int_renew or first_pass:  # check on renewal
         splash()
+        int_renew = (int_renew + int_erval)%60
+        print("int_mins= ",int_mins,"  int_renew= ", int_renew, "  int_erval= ",int_erval)
         j = 1
-        big_time = time.time()               # restart timer
-        rand_timer = int(time.time())%360 - 180  # random int between -180 and + 180 seconds
-        #print("bingo1", rand_timer)
         w.feed()
         set_rtc()
         w.feed()
         data = get_data2024()
         w.feed()
-        ## form text lines from data
+        first_pass = False
 
+        ## form text lines from data
         l1 = [data['snow_fall'], data['snow_base'], data['snow_season'], data['temp'], data['wind'], data['comment']]
         l3 = [data['weather1'], data['weather2'], data['weather3']]
 
@@ -189,19 +197,19 @@ while True:
     int_mins = int(mins)
     ## Color Control
     ## Nightime dimming between 10pm and 6am
-    if int_hour > 21 or int_hour < 6:
-        color_x = 0x100000
+    if int_hour > 19 or int_hour < 7:
+        color_x = 0x000000
         clock_color = 0x100000
-        color_3 = 0x100000
+        color_3 = 0x000000
         dystopian_glitch=False
     else:
-        color_x = 0xA7A7A7
-        clock_color = 0x20C250
-        color_3 = 0x3030C0
+        color_x = 0x001050#0x371727
+        clock_color = 0x702000
+        color_3 = 0x001050
         dystopian_glitch = dystopian_glitch0
 
     ## LINE 1 (REPORT)
-    if l1_x < -5*(len_l1)+5 or first_pass:
+    if l1_x < -5*(len_l1)+5:
         i = 1
         toggle_l1 = (toggle_l1 + 1)%len(l1)
 
@@ -225,31 +233,30 @@ while True:
     text_l2 = time_now
     color_2 = clock_color
 
-    line2_x = 10
+    line2_x = 3
     line2_y = 14
 
     if dystopian_glitch:
 
         ## Glitch Time Display for dystopian effect
-        ## the more of these lines the less smooth the display appears
-        if (k+2*i+3*j)%312 == 0 or (k+2*i+3*j)%312 == 12:# or (k+2*i+3*j)%312 == 18:
+        if (k+2*i+3*j)%222 == 0:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x304000
+            color_2 = 0x101000
 
-        #if (2*k+i+3*j)%363 == 6:
-        #    line2_y = 15
-        #    line2_x = 15
-        #    color_2 = 0x202000
+        if (k+2*i+3*j)%318 == 0:
+            line2_x = 10+i%5+2
+            line2_y = 13 + k%3
+            color_2 = 0x000010
 
         if int_mins != int_mins_old:
             int_mins_old = int_mins
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x604000
+            color_2 = 0x101000
 
     line2 = adafruit_display_text.label.Label(
-    LARGE_FONT,
+    LARGER_FONT,
     color=color_2,
     text=text_l2)
     line2.x= line2_x
@@ -271,18 +278,22 @@ while True:
         )
     line3.x = int(l3_x)#+5*start_text
     line3.y = 3
-
+    #splash()
     g = displayio.Group()
+
+
     #g.append(logo)
     g.append(line2)
     g.append(line1)
     g.append(line3)
+    if int_hour > 19 or int_hour < 7:
+        g.append(line2)
 
-    DISPLAY.show(g)
+    DISPLAY.root_group = g
 
     # pause
-    time.sleep(.022)
-    first_pass = False
+    time.sleep(.02)
+    #first_pass = False
 
     # scroll counters
     k += 1
