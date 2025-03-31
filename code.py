@@ -1,4 +1,4 @@
-#### *SNOW* BOARD #########
+### *SNOW* BOARD #########
 ## 2021 Mar-07: originated
 ## 2024 Nov 17: update 2024
 ## 2025 Mar 13: CPython 9.x
@@ -201,9 +201,9 @@ while True:
         color_x = 0x000000
         clock_color = 0x100000
         color_3 = 0x000000
-        dystopian_glitch=False
+        dystopian_glitch=dystopian_glitch0
     else:
-        color_x = 0x001050#0x371727
+        color_x = 0x301020#0x371727
         clock_color = 0x702000
         color_3 = 0x001050
         dystopian_glitch = dystopian_glitch0
@@ -224,7 +224,7 @@ while True:
         color=color_x,
         text=text_l1)
     line1.x = int(l1_x) #+5*start_text
-    line1.y = 25
+    line1.y = 24
 
     ## LINE 2 (CLOCK)
     time_struct = time.localtime()
@@ -234,7 +234,7 @@ while True:
     color_2 = clock_color
 
     line2_x = 3
-    line2_y = 14
+    line2_y = 13
 
     if dystopian_glitch:
 
@@ -242,18 +242,18 @@ while True:
         if (k+2*i+3*j)%222 == 0:
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x101000
+            color_2 = 0x100000
 
         if (k+2*i+3*j)%318 == 0:
             line2_x = 10+i%5+2
             line2_y = 13 + k%3
-            color_2 = 0x000010
+            color_2 = 0x100010
 
         if int_mins != int_mins_old:
             int_mins_old = int_mins
             line2_x = 10-i%5+2
             line2_y = 13 - k%3
-            color_2 = 0x101000
+            color_2 = 0x100000
 
     line2 = adafruit_display_text.label.Label(
     LARGER_FONT,
@@ -277,17 +277,16 @@ while True:
         text=text_l3#[start_text:end_text]
         )
     line3.x = int(l3_x)#+5*start_text
-    line3.y = 3
+    line3.y = 5
     #splash()
     g = displayio.Group()
 
 
     #g.append(logo)
-    g.append(line2)
+
     g.append(line1)
     g.append(line3)
-    if int_hour > 19 or int_hour < 7:
-        g.append(line2)
+    g.append(line2)
 
     DISPLAY.root_group = g
 
