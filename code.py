@@ -1,8 +1,8 @@
 ### *SNOW* BOARD #########
 ## 2021 Mar-07: originated
 ## 2024 Nov 17: update 2024
-## 2025 Mar 13: CPython 9.x
-        ## needed to update libraries
+## 2025 April 1: CPython 9.x
+        ## needed to update libraries on board!
 
 ## IMPORT LIBRARIES
 import json, board, time, gc
@@ -21,10 +21,8 @@ import adafruit_requests
 
 ####################################
 ## Initialize Variables and Screen
-print("*Snow*Board")
-print("*Skiing S*")
 ## Flag
-dystopian_glitch0 = True
+dystopian_glitch0 = False
 S_N = 5  # serial number
 
 ## GRAB SECRETS AND ASSIGN VARIABLES
@@ -56,13 +54,14 @@ def splash():
     # alternate images
     FILENAME = 'image/MtBLogo.bmp'
     BITMAP = displayio.OnDiskBitmap(FILENAME)
+    
     logo = displayio.TileGrid(BITMAP, pixel_shader=BITMAP.pixel_shader)
     DISPLAY.rotation = 180
     g.append(logo)
     DISPLAY.root_group = g
     return()
 
-#startup Impage
+#startup Image
 splash()
 
 ## Load fonts
@@ -147,19 +146,25 @@ mins = '{0:0>2}'.format(time_struct.tm_min)
 int_mins = int(mins)
 int_mins_old = int_mins
 
-int_erval = 30
-int_renew = (int(int_mins/15)*15+S_N)%60
+int_erval = 15   ## Time in minutes between getting new data (recommend between 10 and 30)
+int_renew = (int(int_mins/int_erval)*int_erval+S_N)%60
 int_mins_old = int_mins
+
+print("int_erval = ", int_erval,"  int_renew ", int_renew, "  int_mins_old ",int_mins_old)
 
 # display variables
 len_l1 = 1
 len_l2 = 1
 len_l3 = 1
 
+# set up clock color
+color_2 = 0x100000
+
+
 l1_x = -1000
-toggle_l1 = 5
+toggle_l1 = 5  # number of labels
 l3_x = -1000
-toggle_l3 = 3
+toggle_l3 = 3  # number of labels
 
 i = 1
 j = 1
@@ -169,13 +174,34 @@ gc.collect()
 
 #start
 first_pass = True
-
+set_rtc()
 
 while True:
 
     w.feed()  # feed watchdog
     if int_mins == int_renew or first_pass:  # check on renewal
-        splash()
+        #show just time
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   #time_struct = time.localtime()
+        #time_now = '{0:0>2}'.format(time_struct.tm_hour)+ ':' + '{0:0>2}'.format(time_struct.tm_min)
+
+        #text_l2 = time_now
+        #color_2 = 0x100000
+
+        #line2_x = 5
+        #line2_y = 14
+        #line2 = adafruit_display_text.label.Label(
+        #LARGER_FONT,
+        #color=color_2,
+        #text=text_l2)
+    
+        #line2.x= line2_x
+        #line2.y= line2_y
+        
+        #g = displayio.Group()
+        #g.append(line2)
+        #DISPLAY.root_group = g
+        
+        # get ready for next cycle
         int_renew = (int_renew + int_erval)%60
         print("int_mins= ",int_mins,"  int_renew= ", int_renew, "  int_erval= ",int_erval)
         j = 1
@@ -197,11 +223,11 @@ while True:
     int_mins = int(mins)
     ## Color Control
     ## Nightime dimming between 10pm and 6am
-    if int_hour > 19 or int_hour < 7:
+    if int_hour > 19 or int_hour < 6:
         color_x = 0x000000
         clock_color = 0x100000
         color_3 = 0x000000
-        dystopian_glitch=dystopian_glitch0
+        dystopian_glitch=False
     else:
         color_x = 0x301020#0x371727
         clock_color = 0x702000
@@ -213,18 +239,18 @@ while True:
         i = 1
         toggle_l1 = (toggle_l1 + 1)%len(l1)
 
-        text_l1 = l1[toggle_l1]
-        len_l1 = len(text_l1)
+        text_l1 = l1[toggle_l1] +"     "
+        len_l1 = len(text_l1)+3
         #print(text_l1)
 
-    l1_x = int((-i*3)%(64+5*len_l1)-5*len_l1)
+    l1_x = int((-i*2)%(64+5*len_l1)-5*len_l1)
 
     line1 = adafruit_display_text.label.Label(
         FONT,
         color=color_x,
         text=text_l1)
     line1.x = int(l1_x) #+5*start_text
-    line1.y = 24
+    line1.y = 25
 
     ## LINE 2 (CLOCK)
     time_struct = time.localtime()
@@ -233,27 +259,27 @@ while True:
     text_l2 = time_now
     color_2 = clock_color
 
-    line2_x = 3
-    line2_y = 13
+    line2_x = 5
+    line2_y = 14
 
     if dystopian_glitch:
 
         ## Glitch Time Display for dystopian effect
         if (k+2*i+3*j)%222 == 0:
-            line2_x = 10-i%5+2
-            line2_y = 13 - k%3
-            color_2 = 0x100000
+            line2_x = 5-i%5+2
+            line2_y = 14 - k%3
+            color_2 = 0x101000
 
         if (k+2*i+3*j)%318 == 0:
-            line2_x = 10+i%5+2
-            line2_y = 13 + k%3
+            line2_x = 5+i%5+2
+            line2_y = 14 + k%3
             color_2 = 0x100010
 
-        if int_mins != int_mins_old:
-            int_mins_old = int_mins
-            line2_x = 10-i%5+2
-            line2_y = 13 - k%3
-            color_2 = 0x100000
+        #if int_mins != int_mins_old:      # Glitch time on minute change
+        #    int_mins_old = int_mins
+        #    line2_x = 10-i%5+2
+        #    line2_y = 13 - k%3
+        #    color_2 = 0x301020
 
     line2 = adafruit_display_text.label.Label(
     LARGER_FONT,
@@ -266,10 +292,10 @@ while True:
     if l3_x < -5*len_l3+5 or first_pass:
         j = 1
         toggle_l3 = (toggle_l3 + 1)%len(l3)
-        text_l3 = l3[toggle_l3]
-        len_l3 = len(text_l3)
+        text_l3 = l3[toggle_l3]+"     "
+        len_l3 = len(text_l3)+3
 
-    l3_x = int((-j*2)%(64+5*len_l3)-5*len_l3)
+    l3_x = int((-j*1.5)%(64+5*len_l3)-5*len_l3)
 
     line3 = adafruit_display_text.label.Label(
         FONT,
@@ -277,13 +303,12 @@ while True:
         text=text_l3#[start_text:end_text]
         )
     line3.x = int(l3_x)#+5*start_text
-    line3.y = 5
+    line3.y = 4
     #splash()
     g = displayio.Group()
 
 
     #g.append(logo)
-
     g.append(line1)
     g.append(line3)
     g.append(line2)
